@@ -4,4 +4,4 @@
 
 # Диаграмма приложения
 
-![](./diagrams/main.png)
+![](./diagrams/main.jpg)
