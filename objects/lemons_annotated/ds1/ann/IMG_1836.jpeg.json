@@ -1,0 +1,64 @@
+{
+    "description": "",
+    "tags": [],
+    "size": {
+        "height": 800,
+        "width": 1067
+    },
+    "objects": [
+        {
+            "id": 32369896,
+            "classId": 36142,
+            "description": "",
+            "geometryType": "bitmap",
+            "labelerLogin": "qanelph",
+            "createdAt": "2021-06-01T17:03:43.736Z",
+            "updatedAt": "2021-06-01T17:03:43.736Z",
+            "tags": [],
+            "classTitle": "lemon",
+            "bitmap": {
+                "data": "eJwBgQJ+/YlQTkcNChoKAAAADUlIRFIAAAECAAAAqAEDAAAAMXFyLwAAAAZQTFRFAAAA////pdmf3QAAAAF0Uk5TAEDm2GYAAAIpSURBVHicrdhNbsMgEAVgoi6y5AgchaOZo3EUjsDSCxSqxH8zMMPDbZCqJtKn+M3DiWUbY2wNxrz/1FU/q+zvfO7AcxP1/fpxvGDL7qIGv/1PrXC1XbERvhPthyydeImjsMUnfwgiQsEr+RFEgYIHeUoiQsGCWEmww8iC1upEkaEoUFQsSFQviwTFCkWB4gUFiaqJK+qiiAxFgaJiEaFIUKxQFCgqFkerKjiH0UWGYoWiQFGxCFBEKBJq7Bh3IAoUr/GZ/F5YBCi2cd1AbOPagciTQvy13Ne2/+Jv8r4KFFtl0rXhXHBz98qWgcCVRVhIgsNkOMwKh8GiwHNoPw/d4EMM3N0Ah4nwC5Fg1F1YXexfzEHv879DepBDOFUcF7NBVANbNXCYMCsGOxNnxcQFYvmHSLD2bwr3BWFVkaeFvv3zQt/+Q+ibOy/07T/F8gXhoXBQWCjUUm8ItfYbQq39FGrtd8QChYfC/VlcdwcWCq32S2iVkXsQLDwUyjDkPkYZhghlGCKUM+R1RyiFYEFvDrFYoHCyCLAQIpRxiVCiRhiVCg+FhUIehgq5dyrkYZgQo9I+5N6ZEKNSIPbePNcRBH/gIkVduRCiJi6EqBz0rbbPn/oTIHeijRo6YdFB2s5KL5qoay+aqEkQPEgftA0iAL55wiiGNyKM0gSRRuFBpFF4EGkUQ88ROSg9TFbEVWvUhAUHuXZPnvWz/HBWkjXoYiNy5ed6kn39BUYFsZoq7ydbAAAAAElFTkSuQmCCQBoX2Q==",
+                "origin": [
+                    752,
+                    421
+                ]
+            }
+        },
+        {
+            "id": 32369895,
+            "classId": 36143,
+            "description": "",
+            "geometryType": "bitmap",
+            "labelerLogin": "qanelph",
+            "createdAt": "2021-06-01T17:03:43.736Z",
+            "updatedAt": "2021-06-01T17:03:43.736Z",
+            "tags": [],
+            "classTitle": "kiwi",
+            "bitmap": {
+                "data": "eJwBygE1/olQTkcNChoKAAAADUlIRFIAAACKAAAAmAEDAAAAAVfjtwAAAAZQTFRFAAAA////pdmf3QAAAAF0Uk5TAEDm2GYAAAFySURBVHicndbNkYQgEAVgLQ9zJARDMTQJjVAIwSMHCnZXZfrntbVdevwKm0c7A0zT/YRjUk/oXdPee5ay9N6rpO2X1LA/kcOWk3qU8+k3t4t4tP2iRjL3rostg9KXPoOofhhE9ddBRWfg+fdBlKJ/n5FiJhopFqIx5YdoTLkRVaSG1A2KKimlYHL3YuZ0IBWk+kQLp6aXOLIGQdFFCSmLT0bxDdoElQfakYSci5xdtEhqNsnenN0xKCiKJq3/U9KrPml/S91DM9KCpFftpuCi1UHRou0dYbvcpKW9pfqWCuby0fGWsouMH2F0EfyNLWouqkjFJhXiwFEGZRclLO+jiITbXkOquF8a9LSrSjJ2aGMfTy4yjgk8XxpSxYOpIB14ohl0hpe7XHoi8SEj0iW8+RXJuCccSPmmFTJwujPw7kxADel7F6KGFaSMNDKwHg6hhrGbIpSiYpHobg+7FI5VFk5BNIsVy5yuYknQqie8qtGEP8SwsPfHd98FAAAAAElFTkSuQmCCZIPK6g==",
+                "origin": [
+                    569,
+                    122
+                ]
+            }
+        },
+        {
+            "id": 32369894,
+            "classId": 36143,
+            "description": "",
+            "geometryType": "bitmap",
+            "labelerLogin": "qanelph",
+            "createdAt": "2021-06-01T17:03:43.736Z",
+            "updatedAt": "2021-06-01T17:03:43.736Z",
+            "tags": [],
+            "classTitle": "kiwi",
+            "bitmap": {
+                "data": "eJwBoAFf/olQTkcNChoKAAAADUlIRFIAAACEAAAAmAEDAAAAH57TBAAAAAZQTFRFAAAA////pdmf3QAAAAF0Uk5TAEDm2GYAAAFISURBVHictdbLEYMgEABQHQ8eKYFSLE1KoxRK4MiBgcTgwrKL0TCE4xvdD6Ms0wRrthNeIr6XwxI/SxVYk6D3tiSOvhR9huWUSMOg0AJEg0gQA7KD5GSRypwF0ufkMdBUuSBZRDHRVZ+ooL2II+VA+hlJuJAFSeSiqv3KBYnvYphY0tYpGxbXlv27eNJ6SwJp/Uqq1j/bsd6Jaom4E90S+bsYsmEXsndJHCGWbPPxzChZBsn6NxFdIrtkI6KHyd4hqiGxQ9gH9T8J7CfoE98lrkss+925PDkk9CBRLZEPRNzJg8M4MPHsUOfimlKfNpaJYUOGi2YDTbExSO8EDUmDGjfm2aB2bLzza4JOggpSSVBBCVB6uLaUZPyyY08p3RuQnEyBQDIIXDorV7aZhsmhC5yh0SOpao8gBVJYjg2xFRytmYksm196AY85xqlhUC9LAAAAAElFTkSuQmCCteewYQ==",
+                "origin": [
+                    464,
+                    539
+                ]
+            }
+        }
+    ]
+}
