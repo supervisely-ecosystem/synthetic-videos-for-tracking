@@ -15,6 +15,10 @@ class Scene:
 
         logger.info('background successfully added')
 
+    def add_object(self):
+        pass
+
+
 
 custom_scene = Scene()
 custom_scene.add_background('./background_img/space.jpg')
