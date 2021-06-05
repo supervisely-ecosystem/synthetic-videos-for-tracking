@@ -120,7 +120,7 @@ def get_objects_list_for_project(project_path, dataset_name):
 
     project = open_project(project_path)
     images_names = get_images_names(os.path.join(project_path, dataset_name))
-
+    logger.info(f'extracting objects...')
     for image_name in images_names:  # по всем изображениям в датасете
         item_paths = project.datasets.get(dataset_name).get_item_paths(image_name)
         ann = sly.Annotation.load_json_file(item_paths.ann_path, project.meta)
@@ -130,7 +130,7 @@ def get_objects_list_for_project(project_path, dataset_name):
 
         for label in ann.labels:  # по всем объектам на изображении
             # print(f'workin now with {label.obj_class.name}')  #  для отладки
-            logger.info(f'[{len(extracted_objects)}] extracting {label.obj_class.name} now')
+            # logger.info(f'[{len(extracted_objects)}] extracting {label.obj_class.name} now')
             extracted_object_image, mask = extract_object_from_image(image_as_arr, label)
 
             extracted_objects.append(
