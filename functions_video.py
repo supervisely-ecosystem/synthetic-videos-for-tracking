@@ -1,9 +1,11 @@
 import cv2
 import numpy
+from tqdm import tqdm
+
+from logger import logger
 
 
 def add_object_to_background(background, overlay, x, y):
-
     background_width = background.shape[1]
     background_height = background.shape[0]
 
@@ -24,7 +26,7 @@ def add_object_to_background(background, overlay, x, y):
         overlay = numpy.concatenate(
             [
                 overlay,
-                numpy.ones((overlay.shape[0], overlay.shape[1], 1), dtype = overlay.dtype) * 255
+                numpy.ones((overlay.shape[0], overlay.shape[1], 1), dtype=overlay.dtype) * 255
             ],
             axis=2,
         )
@@ -38,19 +40,36 @@ def add_object_to_background(background, overlay, x, y):
     return background
 
 
-def generate_frames():
+def load_required_objects(objects_dict, objects_list):
+    required_objects = []
+    for class_name, count in objects_dict.items():
+        temp_counter = 0
+        for curr_obj in objects_list:
+            if curr_obj.class_name == class_name:
+                required_objects.append(curr_obj)
+                temp_counter += 1
+                if temp_counter == count:
+                    break
+
+    if len(required_objects) > 0:
+        return required_objects
+    else:
+        logger.warning('cannot find any fitting objects to generate video')
+        raise ValueError('objects is missing')
+
+
+def generate_frames(fps, background, temp_objects, movement_law, speed_interval):
     ###
     frames = []
     for counter in range(0, 500, 5):
-        frames.append(add_object_to_background(self.backgrounds[0].copy(), self.objects[1].image, counter, counter))
+        frames.append(add_object_to_background(background.copy(), temp_objects[1].image, counter, counter))
 
     pass
 
 
-def write_frames_to_file():
+def write_frames_to_file(video_name, fps, frames, video_shape):
     ###
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    video_shape = (self.backgrounds[0].shape[1], self.backgrounds[0].shape[0])
 
     # print(self.backgrounds[0].shape[:2])
     video = cv2.VideoWriter('test2.mp4', fourcc, 60, video_shape)
@@ -59,4 +78,6 @@ def write_frames_to_file():
         video.write(frame)
 
     video.release()
+
+
 
