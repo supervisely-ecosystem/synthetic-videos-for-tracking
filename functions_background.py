@@ -15,7 +15,9 @@ def get_cv2_background_by_path(background_path):
         raise ValueError('Background path is broken')
 
     try:
-        return cv2.imread(background_path)
+        bg_img = cv2.imread(background_path)
+        # return cv2.cvtColor(bg_img, cv2.COLOR_RGBA2BGRA)
+        return bg_img
     except Exception as ex:
         logger.error(f'exception while opening file'
                      f'{ex}')
