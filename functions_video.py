@@ -37,7 +37,7 @@ def add_object_to_background(background, overlay, x, y):
     mask = overlay[..., 3:] / 255.0
 
     background[y:y+h, x:x+w] = (1.0 - mask) * background[y:y+h, x:x+w] + mask * overlay_image
-    cv2.imwrite('combined2.png', background)
+    # cv2.imwrite('combined2.png', background)
 
     return background
 
@@ -74,9 +74,6 @@ def generate_frames(fps, background, temp_objects, movement_law, speed_interval)
         x, y = curr_object.controller.next_step()
         frames.append(add_object_to_background(
             background.copy(), curr_object.image, x, y))
-
-        image = add_object_to_background(
-            background.copy(), curr_object.image, x, y)
 
         # cv2.imshow('show_div', image)
         # cv2.waitKey()
