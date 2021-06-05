@@ -3,7 +3,7 @@ import numpy
 
 class LinearLaw:
     def __init__(self):
-        self.k = numpy.random.uniform(0, 10)
+        self.k = numpy.random.uniform(0, 5)
         self.b = numpy.random.uniform(0, 10)
 
     def refresh_params(self):

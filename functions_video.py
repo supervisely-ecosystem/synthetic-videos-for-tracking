@@ -8,6 +8,15 @@ from logger import logger
 
 
 def add_object_to_background(background, overlay, x, y):
+    """
+    Добавляет объект overlay на фон background
+    :param background: фоновое изображение
+    :param overlay: объект, который нужно добавить
+    :param x: координата background x, на которую будет нанесен overlay от левого верхнего угла
+    :param y: координата background y, на которую будет нанесен overlay от левого верхнего угла
+    :return: совмещенное изображение
+    """
+
     background_width = background.shape[1]
     background_height = background.shape[0]
 
@@ -37,12 +46,17 @@ def add_object_to_background(background, overlay, x, y):
     mask = overlay[..., 3:] / 255.0
 
     background[y:y+h, x:x+w] = (1.0 - mask) * background[y:y+h, x:x+w] + mask * overlay_image
-    # cv2.imwrite('combined2.png', background)
 
     return background
 
 
 def load_required_objects(objects_dict, objects_list):
+    """
+    Загружает объекты запрошенные пользователем из списка извлеченных объектов датасета
+    :param objects_dict: запрошенные пользователем объекты
+    :param objects_list: извлеченные из датасета объекты
+    :return: список запрошенных-извлеченных объектов
+    """
     required_objects = []
     for class_name, count in objects_dict.items():
         temp_counter = 0
@@ -60,17 +74,29 @@ def load_required_objects(objects_dict, objects_list):
         raise ValueError('objects is missing')
 
 
-def generate_frames(fps, background, temp_objects, movement_law, speed_interval):
+def generate_frames(duration, fps, background, temp_objects, movement_law, speed_interval):
+    """
+    Генерирует кадры видео на основе параметров
+    :param duration: длительность в секундах
+    :param fps: количество кадров в секунду
+    :param background: фоновое изображение
+    :param temp_objects: объекты для вставки в кадр
+    :param movement_law: закон перемещения объектов
+    :param speed_interval: интервал скорости перемещения объектов
+    :return: сгенерированные кадры
+    """
 
     for curr_object in temp_objects:
 
         curr_object.controller = MovementController(movement_law=movement_law(),
                                                     speed_interval=speed_interval,
-                                                    x_high_limit=background.shape[1],
-                                                    y_high_limit=background.shape[0])
+                                                    x_high_limit=background.shape[1] - curr_object.image.shape[1],
+                                                    y_high_limit=background.shape[0] - curr_object.image.shape[0],
+                                                    x_low_limit=0,
+                                                    y_low_limit=0)
 
     frames = []
-    for _ in tqdm(range(1000)):
+    for _ in tqdm(range(fps * duration), desc='Objects to background: '):
         frame_background = background.copy()
         for curr_object in temp_objects:
             x, y = curr_object.controller.next_step()
@@ -82,12 +108,18 @@ def generate_frames(fps, background, temp_objects, movement_law, speed_interval)
 
 
 def write_frames_to_file(video_name, fps, frames, video_shape):
+    """
+    Записывает кадры в единный видеофайл
+    :param video_name: название видео
+    :param fps: количество кадров
+    :param frames: кадры, которые нужно склеить
+    :param video_shape: размер видеокадра
+    :return: None
+    """
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-
-    # print(self.backgrounds[0].shape[:2])
     video = cv2.VideoWriter(video_name, fourcc, fps, video_shape)
 
-    for frame in tqdm(frames):
+    for frame in tqdm(frames, desc='Generating video file: '):
         video.write(frame)
 
     video.release()
