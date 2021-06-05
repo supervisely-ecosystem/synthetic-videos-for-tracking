@@ -144,5 +144,15 @@ def get_objects_list_for_project(project_path, dataset_name):
     return extracted_objects
 
 
-
+def get_available_objects(objects):
+    """
+    Возвращает список названий классов извлеченных объектов
+    :param objects: список извлеченных объектов
+    :return: словрь названий классов извлеченных объектов {название: количество}
+    """
+    obj_names = {}
+    for curr_object in objects:
+        curr_num = obj_names.get(curr_object.class_name, 0)
+        obj_names[curr_object.class_name] = curr_num + 1
+    return obj_names
 

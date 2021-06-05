@@ -62,21 +62,21 @@ def load_required_objects(objects_dict, objects_list):
 
 def generate_frames(fps, background, temp_objects, movement_law, speed_interval):
 
-    curr_object = temp_objects[0]
+    for curr_object in temp_objects:
 
-    curr_object.controller = MovementController(movement_law=movement_law(),
-                                                speed_interval=speed_interval,
-                                                x_limit=background.shape[1],
-                                                y_limit=background.shape[0])
+        curr_object.controller = MovementController(movement_law=movement_law(),
+                                                    speed_interval=speed_interval,
+                                                    x_high_limit=background.shape[1],
+                                                    y_high_limit=background.shape[0])
 
     frames = []
-    for counter in tqdm(range(300)):
-        x, y = curr_object.controller.next_step()
-        frames.append(add_object_to_background(
-            background.copy(), curr_object.image, x, y))
-
-        # cv2.imshow('show_div', image)
-        # cv2.waitKey()
+    for _ in tqdm(range(1000)):
+        frame_background = background.copy()
+        for curr_object in temp_objects:
+            x, y = curr_object.controller.next_step()
+            frame_background = add_object_to_background(
+                frame_background, curr_object.image, x, y)
+        frames.append(frame_background)
 
     return frames
 
