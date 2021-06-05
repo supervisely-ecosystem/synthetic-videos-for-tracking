@@ -7,6 +7,10 @@ from logger import logger
 
 
 class ExtractedObject:
+    """
+    Класс извлеченного объекта.
+    Содержит базовые характеристики, необходимые для работы с объектом.
+    """
     def __init__(self, image, mask, class_name, proj_path, ds_name):
         self.image = image
         self.mask = mask
