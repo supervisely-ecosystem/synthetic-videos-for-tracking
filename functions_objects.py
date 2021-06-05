@@ -7,6 +7,10 @@ from logger import logger
 
 
 class ExtractedObject:
+    """
+    Класс извлеченного объекта.
+    Содержит базовые характеристики, необходимые для работы с объектом.
+    """
     def __init__(self, image, mask, class_name, proj_path, ds_name):
         self.image = image
         self.mask = mask
@@ -105,7 +109,7 @@ def extract_object_from_image(image_as_arr, label):
     mask_matrix = geometry.data
 
     cropped_with_alpha = to_transparent_background(mask_matrix, cropped_image)
-    # cv2.imwrite(f'transparent_{label.obj_class.name}.png', cropped_with_alpha)  # для отладки
+    cv2.imwrite(f'transparent_{label.obj_class.name}.png', cropped_with_alpha)  # для отладки
     return cropped_with_alpha, mask_matrix
 
 
@@ -120,7 +124,7 @@ def get_objects_list_for_project(project_path, dataset_name):
 
     project = open_project(project_path)
     images_names = get_images_names(os.path.join(project_path, dataset_name))
-
+    logger.info(f'extracting objects...')
     for image_name in images_names:  # по всем изображениям в датасете
         item_paths = project.datasets.get(dataset_name).get_item_paths(image_name)
         ann = sly.Annotation.load_json_file(item_paths.ann_path, project.meta)
@@ -130,7 +134,7 @@ def get_objects_list_for_project(project_path, dataset_name):
 
         for label in ann.labels:  # по всем объектам на изображении
             # print(f'workin now with {label.obj_class.name}')  #  для отладки
-            logger.info(f'[{len(extracted_objects)}] extracting {label.obj_class.name} now')
+            # logger.info(f'[{len(extracted_objects)}] extracting {label.obj_class.name} now')
             extracted_object_image, mask = extract_object_from_image(image_as_arr, label)
 
             extracted_objects.append(
@@ -142,4 +146,17 @@ def get_objects_list_for_project(project_path, dataset_name):
             )
 
     return extracted_objects
+
+
+def get_available_objects(objects):
+    """
+    Возвращает список названий классов извлеченных объектов
+    :param objects: список извлеченных объектов
+    :return: словрь названий классов извлеченных объектов {название: количество}
+    """
+    obj_names = {}
+    for curr_object in objects:
+        curr_num = obj_names.get(curr_object.class_name, 0)
+        obj_names[curr_object.class_name] = curr_num + 1
+    return obj_names
 
