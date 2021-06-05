@@ -6,4 +6,4 @@
 
 ## Диаграмма приложения
 
-![](./diagrams/main.jpg)
+![](./diagrams/main.png)
