@@ -61,7 +61,7 @@ def load_required_objects(objects_dict, objects_list):
 def generate_frames(fps, background, temp_objects, movement_law, speed_interval):
     ###
     frames = []
-    for counter in range(0, 500, 5):
+    for counter in range(3000):
         frames.append(add_object_to_background(background.copy(), temp_objects[1].image, counter, counter))
 
     pass
