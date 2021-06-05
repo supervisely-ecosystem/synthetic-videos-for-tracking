@@ -21,3 +21,4 @@ def get_cv2_background_by_path(background_path):
                      f'{ex}')
         raise ex
 
+
