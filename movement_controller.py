@@ -12,20 +12,25 @@ class MovementController:
         self.x_limit = x_limit
         self.y_limit = y_limit
 
-    def next_step(self):
-        size_of_next_step = numpy.random.randint(self.speed_interval)
+
+    def generate_new_coords(self):
+        size_of_next_step = int(numpy.random.randint(self.speed_interval[0], self.speed_interval[1]))
         x = self.x + size_of_next_step
-        y = self.movement_law.calculator(self.x)
+        y = self.movement_law.calculator(x)
+        return x, y
 
-        if not self.check_coords_availability(x, y):
+
+    def next_step(self):
+        x, y = self.generate_new_coords()
+        while not self.check_coords_availability(x, y):
             self.change_direction()
-            self.next_step()
+            x, y = self.generate_new_coords()
 
-        self.x, self.y = x, y
+        self.x, self.y = int(x), int(y)
         return self.x, self.y
 
     def check_coords_availability(self, x, y):
-        if x > self.x_limit or y > self.y_limit:
+        if x > self.x_limit or y > self.y_limit or x < 0 or y < 0:
             return False
         else:
             return True
