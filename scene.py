@@ -26,9 +26,9 @@ class Scene:
 
     def generate_video(self, video_name, fps, duration, objects_dict, movement_laws, self_overlay, speed_interval):
         temp_objects = load_required_objects(objects_dict, self.objects)
-        temp_objects_with_controllers = initialize_controllers(temp_objects, movement_laws, speed_interval,
+        initialize_controllers(temp_objects, movement_laws, speed_interval,
                                                                self_overlay, self.backgrounds[0].shape)
-        frames = generate_frames(fps, duration, self.backgrounds[0], temp_objects_with_controllers)
+        frames = generate_frames(fps, duration, self.backgrounds[0], temp_objects)
         video_shape = (self.backgrounds[0].shape[1], self.backgrounds[0].shape[0])
         write_frames_to_file(video_name, fps, frames, video_shape)
 
@@ -42,7 +42,7 @@ custom_scene.add_background('./background_img/large_space.jpg')
 # custom_scene.add_background('./background_img/white_test.jpg')
 custom_scene.add_objects(project_path, dataset_name)
 custom_scene.generate_video(video_name='./test1_random_walk_60fps.mp4',
-                            duration=60,
+                            duration=10,
                             fps=60,
                             objects_dict={'lemon': 6},
                             # objects_dict={'square': 4},
