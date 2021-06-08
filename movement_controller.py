@@ -158,7 +158,10 @@ class MovementController:
         for added_object in added_objects:
             if not compare_overlays_by_rectangles(added_object, curr_object, new_coords):
 
-                
+                change_direction = numpy.random.choice([added_object.controller.change_x_direction,
+                                                       added_object.controller.change_y_direction])
+                change_direction()
+
                 return False
         return True
 
@@ -175,7 +178,6 @@ class MovementController:
         if changed:
             return False
         return True
-
 
     def check_y_availability(self, new_y):
         if new_y > self.y_high_limit or new_y < self.y_low_limit:
