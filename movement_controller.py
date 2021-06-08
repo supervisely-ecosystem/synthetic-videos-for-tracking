@@ -1,24 +1,30 @@
 from movement_laws import *
 import numpy
+from collections import namedtuple
 
 
-def calculate_mask_area(**kwargs):
-    areas = []
-    for mask in kwargs.values():
-        areas.append(sum([sum(row) for row in mask]))
-    return areas
+# def calculate_mask_area(**kwargs):
+#     areas = []
+#     for mask in kwargs.values():
+#         areas.append(sum([sum(row) for row in mask]))
+#     return areas
 
 
-def calculate_intersection(mask_under, mask_over):
-    return numpy.logical_and(mask_over.astype(bool), mask_under.astype(bool))
+# def calculate_intersection(mask_under, mask_over):
+#     return numpy.logical_and(mask_over.astype(bool), mask_under.astype(bool))
 
 
-def resize_mask(base_shape, mask_coords, mask):
-    base_matrix = numpy.zeros(base_shape)
-    base_matrix[mask_coords[0]: mask_coords[0] + mask.shape[0],
-                mask_coords[1]: mask_coords[1] + mask.shape[1]] = mask
-    return base_matrix
+# def resize_mask(base_shape, mask_coords, mask):
+#     base_matrix = numpy.zeros(base_shape)
+#     base_matrix[mask_coords[0]: mask_coords[0] + mask.shape[0],
+#                 mask_coords[1]: mask_coords[1] + mask.shape[1]] = mask
+#     return base_matrix
 
+def area(a, b):  # returns None if rectangles don't intersect
+    dx = min(a.xmax, b.xmax) - max(a.xmin, b.xmin)
+    dy = min(a.ymax, b.ymax) - max(a.ymin, b.ymin)
+    if (dx >= 0) and (dy >= 0):
+        return dx * dy
 
 def calculate_base_coords(added_coords, new_coords, lt=True):
     if lt:
@@ -31,39 +37,68 @@ def calculate_base_coords(added_coords, new_coords, lt=True):
 
     return x, y
 
+#
+# def compare_overlays_by_masks(added_object, curr_object, new_coords):
+#     added_mask = added_object.mask
+#     curr_mask = curr_object.mask
+#
+#     x_min, y_min = calculate_base_coords(added_coords=(added_object.controller.x, added_object.controller.y),
+#                                          new_coords=new_coords,
+#                                          lt=True)
+#     x_max, y_max = calculate_base_coords(added_coords=(added_object.controller.x + added_mask.shape[0],
+#                                                        added_object.controller.y + added_mask.shape[1]),
+#                                          new_coords=(new_coords[0] + curr_mask.shape[0],
+#                                                      new_coords[1] + curr_mask.shape[1]),
+#                                          lt=False)
+#
+#     added_x, added_y = added_object.controller.x - x_min, added_object.controller.y - y_min
+#     curr_x, curr_y = new_coords[0] - x_min, new_coords[1] - y_min
+#
+#     added_rebased_mask = resize_mask(base_shape=(x_max, y_max),
+#                                      mask_coords=(added_x, added_y),
+#                                      mask=added_mask)
+#
+#     curr_rebased_mask = resize_mask(base_shape=(x_max, y_max),
+#                                     mask_coords=(curr_x, curr_y),
+#                                     mask=curr_mask)
+#
+#     intersected_mask = calculate_intersection(added_rebased_mask, curr_rebased_mask).astype(int)
+#     intersection_area, added_area = calculate_mask_area(inter_mask=intersected_mask,
+#                                                         added_mask=added_mask)
+#
+#     if (intersection_area / added_area) > added_object.controller.self_overlay:
+#         return False
+#     return True
 
-def compare_overlays(added_object, curr_object, new_coords):
-    added_mask = added_object.mask
-    curr_mask = curr_object.mask
 
-    x_min, y_min = calculate_base_coords(added_coords=(added_object.controller.x, added_object.controller.y),
-                                         new_coords=new_coords,
-                                         lt=True)
-    x_max, y_max = calculate_base_coords(added_coords=(added_object.controller.x + added_mask.shape[0],
-                                                       added_object.controller.y + added_mask.shape[1]),
-                                         new_coords=(new_coords[0] + curr_mask.shape[0],
-                                                     new_coords[1] + curr_mask.shape[1]),
-                                         lt=False)
+def compare_overlays_by_rectangles(added_object, curr_object, new_coords):
+    added_mask_shape = added_object.mask.shape
+    curr_mask_shape = curr_object.mask.shape
 
-    added_x, added_y = added_object.controller.x - x_min, added_object.controller.y - y_min
-    curr_x, curr_y = new_coords[0] - x_min, new_coords[1] - y_min
+    # intersected_mask = calculate_intersection(added_rebased_mask, curr_rebased_mask).astype(int)
+    # intersection_area, added_area = calculate_mask_area(inter_mask=intersected_mask,
+    #                                                     added_mask=added_mask)
 
-    added_rebased_mask = resize_mask(base_shape=(x_max, y_max),
-                                     mask_coords=(added_x, added_y),
-                                     mask=added_mask)
+    added_area = added_mask_shape[0] * added_mask_shape[1]
 
-    curr_rebased_mask = resize_mask(base_shape=(x_max, y_max),
-                                    mask_coords=(curr_x, curr_y),
-                                    mask=curr_mask)
+    Rectangle = namedtuple('Rectangle', 'xmin ymin xmax ymax')
 
-    intersected_mask = calculate_intersection(added_rebased_mask, curr_rebased_mask).astype(int)
-    intersection_area, added_area = calculate_mask_area(inter_mask=intersected_mask,
-                                                        added_mask=added_mask)
+    ra = Rectangle(added_object.controller.x,
+                   added_object.controller.y,
+                   added_object.controller.x + added_mask_shape[0],
+                   added_object.controller.y + added_mask_shape[1])
+    rb = Rectangle(
+        new_coords[0],
+        new_coords[1],
+        new_coords[0] + curr_mask_shape[0],
+        new_coords[1] + curr_mask_shape[1]
+    )
 
+    intersection_area = area(ra, rb)
 
-
-    if (intersection_area / added_area) > added_object.controller.self_overlay:
-        return False
+    if intersection_area:
+        if (intersection_area / added_area) > added_object.controller.self_overlay:
+            return False
     return True
 
 
@@ -120,13 +155,13 @@ class MovementController:
         """Проверка доступности по координат"""
         for added_object in added_objects:
             x_changed = False
-            while not compare_overlays(added_object, curr_object, new_coords):
+            while not compare_overlays_by_rectangles(added_object, curr_object, new_coords):
 
                 if not x_changed:
                     self.change_x_direction()
                     x_changed = True
                 else:
-                    self.change_x_direction()
+                    self.change_y_direction()
 
                 x, y = self.generate_new_coords()
                 new_coords = (x, y)
