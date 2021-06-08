@@ -1,0 +1,28 @@
+{
+    "description": "",
+    "tags": [],
+    "size": {
+        "height": 300,
+        "width": 300
+    },
+    "objects": [
+        {
+            "id": 33278487,
+            "classId": 36606,
+            "description": "",
+            "geometryType": "bitmap",
+            "labelerLogin": "qanelph",
+            "createdAt": "2021-06-08T13:13:00.157Z",
+            "updatedAt": "2021-06-08T13:13:00.157Z",
+            "tags": [],
+            "classTitle": "square",
+            "bitmap": {
+                "data": "eJzrDPBz5+WS4mJgYOD19HAJYmBg1AFhDjagSGVtXykDA8cGTxfHkIq4t1caORkMeJgOlv1fqFvS3X6apYjt/TZZ9waGxoYDphGN01xUHB5wS+j0OzQ4uB1ISF0lNIWBsfkpO4fACQ6JNT6hTUIKCRv+MDAySTI2T13pFcDEwjNNXsFBQTlhg1Eop1dDw8FPzCwcKSw8Ycu0HDkFDCLqgCb3NBw8FaKqwcjEdppfQGGCoEHEzFUsqg4HEn4yMrEYMbFpB09dwMIhoWM/aumopaOWjlo6aumopaOWjmhLK77Zrdn5756aH7AJw+Dp6ueyzimhCQDneKmy",
+                "origin": [
+                    0,
+                    0
+                ]
+            }
+        }
+    ]
+}

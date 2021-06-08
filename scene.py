@@ -31,16 +31,17 @@ class Scene:
         write_frames_to_file(video_name, fps, frames, video_shape)
 
 
-project_path = './objects/lemons_annotated'
+project_path = './objects/small_squares'
 dataset_name = 'ds1'
 
 custom_scene = Scene()
-custom_scene.add_background('./background_img/space.jpg')
+custom_scene.add_background('./background_img/white_test.jpg')
 custom_scene.add_objects(project_path, dataset_name)
 custom_scene.generate_video(video_name='./test1_60fps.mp4',
                             duration=10,
                             fps=60,
-                            objects_dict={'lemon': 2, 'kiwi': 2},
+                            # objects_dict={'lemon': 2, 'kiwi': 2},
+                            objects_dict={'square': 4},
                             movement_law=LinearLaw,
                             speed_interval=(1, 30))
 
