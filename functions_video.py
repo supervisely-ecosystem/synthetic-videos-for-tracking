@@ -90,18 +90,24 @@ def generate_frames(duration, fps, background, temp_objects, movement_law, speed
 
         curr_object.controller = MovementController(movement_law=movement_law(),
                                                     speed_interval=speed_interval,
+                                                    self_overlay=0.5,
                                                     x_high_limit=background.shape[1] - curr_object.image.shape[1],
                                                     y_high_limit=background.shape[0] - curr_object.image.shape[0],
                                                     x_low_limit=0,
                                                     y_low_limit=0)
 
     frames = []
+
     for _ in tqdm(range(fps * duration), desc='Objects to background: '):
         frame_background = background.copy()
+        added_objects = []
         for curr_object in temp_objects:
-            x, y = curr_object.controller.next_step()
+
+            x, y = curr_object.controller.next_step(added_objects, curr_object)
             frame_background = add_object_to_background(
                 frame_background, curr_object.image, x, y)
+
+            added_objects.append(curr_object)
         frames.append(frame_background)
 
     return frames

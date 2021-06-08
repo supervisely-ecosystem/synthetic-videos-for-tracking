@@ -1,5 +1,3 @@
-
-
 from functions_background import *
 from functions_objects import *
 from functions_video import *
