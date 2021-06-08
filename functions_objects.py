@@ -11,9 +11,10 @@ class ExtractedObject:
     Класс извлеченного объекта.
     Содержит базовые характеристики, необходимые для работы с объектом.
     """
-    def __init__(self, image, mask, class_name, proj_path, ds_name):
+    def __init__(self, image, mask, area, class_name, proj_path, ds_name):
         self.image = image
         self.mask = mask
+        self.area = area
         self.class_name = class_name
         self.proj_path = proj_path
         self.ds_name = ds_name
@@ -140,6 +141,7 @@ def get_objects_list_for_project(project_path, dataset_name):
             extracted_objects.append(
                 ExtractedObject(image=extracted_object_image,
                                 mask=mask,
+                                area=label.area,
                                 class_name=label.obj_class.name,
                                 proj_path=project_path,
                                 ds_name=dataset_name)

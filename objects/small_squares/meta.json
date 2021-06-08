@@ -1,0 +1,14 @@
+{
+    "classes": [
+        {
+            "title": "square",
+            "shape": "bitmap",
+            "color": "#FFFFFF",
+            "geometry_config": {},
+            "id": 36607,
+            "hotkey": ""
+        }
+    ],
+    "tags": [],
+    "projectType": "images"
+}
