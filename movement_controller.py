@@ -1,7 +1,7 @@
 from movement_laws import *
 import numpy
 from collections import namedtuple
-
+from logger import logger
 
 # def calculate_mask_area(**kwargs):
 #     areas = []
@@ -97,7 +97,10 @@ def compare_overlays_by_rectangles(added_object, curr_object, new_coords):
     intersection_area = area(ra, rb)
 
     if intersection_area:
+        logger.debug(f'\nlower object area {added_area}\n'
+                     f'intersection object area {intersection_area}\n')
         if (intersection_area / added_area) > added_object.controller.self_overlay:
+
             return False
     return True
 
@@ -123,12 +126,12 @@ class MovementController:
         self.down = 1
         self.right = 1
 
-    def generate_new_coords(self):
+    def generate_new_coords(self, size_of_next_step):
         """
         Генерирует следующий шаг координат
         :return: координаты объекта
         """
-        size_of_next_step = int(numpy.random.randint(self.speed_interval[0], self.speed_interval[1]))
+
         x = self.x + size_of_next_step * self.right
         y_div = self.movement_law.calculator(x)
         y = self.y + y_div * self.down
@@ -140,27 +143,29 @@ class MovementController:
         Если объект не может попасть на следующий шаг — производит перерассчет
         :return: новые координаты объекта
         """
-        x, y = self.generate_new_coords()
+        size_of_next_step = int(numpy.random.randint(self.speed_interval[0], self.speed_interval[1]))
+
+        x, y = self.generate_new_coords(size_of_next_step)
 
         if not self.check_overlay_coords_availability((x, y), added_objects, curr_object):
             self.change_x_direction()
             self.change_y_direction()
-            x, y = self.generate_new_coords()
+            x, y = self.generate_new_coords(size_of_next_step)
 
         if not self.check_bounding_coords_availability((x, y)):
-            x, y = self.generate_new_coords()
+            x, y = self.generate_new_coords(size_of_next_step)
 
         self.x, self.y = x, y
         return self.x, self.y
+
 
     def check_overlay_coords_availability(self, new_coords, added_objects, curr_object):
         """Проверка доступности по координат"""
         for added_object in added_objects:
             if not compare_overlays_by_rectangles(added_object, curr_object, new_coords):
 
-                change_direction = numpy.random.choice([added_object.controller.change_x_direction,
-                                                       added_object.controller.change_y_direction])
-                change_direction()
+                added_object.controller.change_x_direction()
+                added_object.controller.change_y_direction()
 
                 return False
         return True
