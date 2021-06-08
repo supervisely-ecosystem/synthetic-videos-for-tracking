@@ -90,7 +90,7 @@ def generate_frames(duration, fps, background, temp_objects, movement_law, speed
 
         curr_object.controller = MovementController(movement_law=movement_law(),
                                                     speed_interval=speed_interval,
-                                                    self_overlay=0.5,
+                                                    self_overlay=1,
                                                     x_high_limit=background.shape[1] - curr_object.image.shape[1],
                                                     y_high_limit=background.shape[0] - curr_object.image.shape[0],
                                                     x_low_limit=0,
