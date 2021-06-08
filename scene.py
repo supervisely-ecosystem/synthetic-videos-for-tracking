@@ -46,7 +46,7 @@ custom_scene.generate_video(video_name='./test1_random_walk_60fps.mp4',
                             fps=60,
                             objects_dict={'lemon': 6},
                             # objects_dict={'square': 4},
-                            movement_laws=[{'law': RandomWalkingLaw, 'params': (1920, 1080)},
+                            movement_laws=[{'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
                                            {'law': LinearLaw, 'params': ()}],
                             self_overlay=0.4,
                             speed_interval=(1, 10))
