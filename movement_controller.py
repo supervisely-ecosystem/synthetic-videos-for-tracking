@@ -142,10 +142,12 @@ class MovementController:
         """
         x, y = self.generate_new_coords()
 
-        if not self.check_bounding_coords_availability((x, y)):
+        if not self.check_overlay_coords_availability((x, y), added_objects, curr_object):
+            self.change_x_direction()
+            self.change_y_direction()
             x, y = self.generate_new_coords()
 
-        if not self.check_overlay_coords_availability((x, y), added_objects, curr_object):
+        if not self.check_bounding_coords_availability((x, y)):
             x, y = self.generate_new_coords()
 
         self.x, self.y = x, y
@@ -154,25 +156,21 @@ class MovementController:
     def check_overlay_coords_availability(self, new_coords, added_objects, curr_object):
         """Проверка доступности по координат"""
         for added_object in added_objects:
-            x_changed = False
-            while not compare_overlays_by_rectangles(added_object, curr_object, new_coords):
+            if not compare_overlays_by_rectangles(added_object, curr_object, new_coords):
 
-                if not x_changed:
-                    self.change_x_direction()
-                    x_changed = True
-                else:
-                    self.change_y_direction()
-
-                x, y = self.generate_new_coords()
-                new_coords = (x, y)
+                
+                return False
+        return True
 
     def check_bounding_coords_availability(self, new_coords):
         changed = False
         if not self.check_x_availability(new_coords[0]):
             self.change_x_direction()
+            changed = True
 
         if not self.check_y_availability(new_coords[1]):
             self.change_y_direction()
+            changed = True
 
         if changed:
             return False

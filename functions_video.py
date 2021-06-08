@@ -109,6 +109,8 @@ def generate_frames(duration, fps, background, temp_objects, movement_law, speed
 
             added_objects.append(curr_object)
         frames.append(frame_background)
+        # cv2.imshow(f'frame {len(frames)}', frame_background)
+        # cv2.waitKey()
 
     return frames
 
