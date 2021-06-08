@@ -1,4 +1,5 @@
 import numpy
+from scipy.interpolate import interp1d
 
 
 class LinearLaw:
@@ -9,12 +10,51 @@ class LinearLaw:
     2. смещение b
     """
     def __init__(self):
-        self.k = numpy.random.uniform(0, 5)
+        self.k = numpy.random.uniform(0, 3)
         self.b = numpy.random.uniform(0, 10)
 
     def refresh_params(self):
-        self.k = numpy.random.uniform(0, 10)
-        self.b = numpy.random.uniform(0, 10)
+        self.k = numpy.random.uniform(0, 3)
+        # self.b = numpy.random.uniform(0, 10)
 
     def calculator(self, x):
         return (self.k * x - self.k * (x - 1)) + self.b
+
+
+class RandomWalkingLaw:
+    def __init__(self, x_high_limit, y_high_limit, x_low_limit=0,
+                 y_low_limit=0):
+
+        self.x_high_limit = x_high_limit + 500
+        self.y_high_limit = y_high_limit + 500
+        self.x_low_limit = x_low_limit - 500
+        self.y_low_limit = y_low_limit - 500
+
+        self.x = numpy.linspace(self.x_low_limit, self.x_high_limit, num=40, endpoint=True)
+        # self.add_bounds()
+        self.y = list((numpy.random.randint(low=self.y_low_limit, high=self.y_high_limit, size=(len(self.x),))))
+
+
+        self.f = interp1d(self.x, self.y, kind='cubic')
+
+    def add_bounds(self):
+        self.x.extend([self.x_low_limit, self.x_high_limit])
+        self.x = sorted(self.x)
+
+        # self.y.extend([self.y_low_limit, self.y_high_limit])
+        # self.y = sorted(self.y)
+
+    def refresh_params(self):
+        self.x = sorted(list(set(numpy.random.randint(low=self.x_low_limit, high=self.x_high_limit, size=(30,)))))
+        self.add_bounds()
+        self.y = (numpy.random.randint(low=self.y_low_limit, high=self.y_high_limit, size=(len(self.x),)))
+
+
+        self.f = interp1d(self.x, self.y, kind='linear')
+
+    def calculator(self, x):
+        print(x)
+
+        return abs(self.f(x) - self.f(x - 1))
+
+

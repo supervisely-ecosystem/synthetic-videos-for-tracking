@@ -74,7 +74,23 @@ def load_required_objects(objects_dict, objects_list):
         raise ValueError('objects is missing')
 
 
-def generate_frames(duration, fps, background, temp_objects, movement_law, speed_interval):
+def initialize_controllers(temp_objects, movement_laws, speed_interval, self_overlay, background_shape):
+    for curr_object in temp_objects:
+
+        movement_law = numpy.random.choice(movement_laws)
+        curr_law = movement_law['law']
+        curr_params = movement_law['params']
+
+        curr_object.controller = MovementController(movement_law=curr_law(*curr_params),
+                                                    speed_interval=speed_interval,
+                                                    self_overlay=self_overlay,  # how much the object can be covered
+                                                    x_high_limit=background_shape[1] - curr_object.image.shape[1],
+                                                    y_high_limit=background_shape[0] - curr_object.image.shape[0],
+                                                    x_low_limit=0,
+                                                    y_low_limit=0)
+
+
+def generate_frames(duration, fps, background, temp_objects):
     """
     Генерирует кадры видео на основе параметров
     :param duration: длительность в секундах
@@ -86,15 +102,6 @@ def generate_frames(duration, fps, background, temp_objects, movement_law, speed
     :return: сгенерированные кадры
     """
 
-    for curr_object in temp_objects:
-
-        curr_object.controller = MovementController(movement_law=movement_law(),
-                                                    speed_interval=speed_interval,
-                                                    self_overlay=0,
-                                                    x_high_limit=background.shape[1] - curr_object.image.shape[1],
-                                                    y_high_limit=background.shape[0] - curr_object.image.shape[0],
-                                                    x_low_limit=0,
-                                                    y_low_limit=0)
 
     frames = []
 
