@@ -97,8 +97,8 @@ def compare_overlays_by_rectangles(added_object, curr_object, new_coords):
     intersection_area = area(ra, rb)
 
     if intersection_area:
-        logger.debug(f'\nlower object area {added_area}\n'
-                     f'intersection object area {intersection_area}\n')
+        # logger.debug(f'\nlower object area {added_area}\n'
+        #              f'intersection object area {intersection_area}\n')
         if (intersection_area / added_area) > added_object.controller.self_overlay:
 
             return False
@@ -117,6 +117,7 @@ class MovementController:
         self.movement_law = movement_law
         self.speed_interval = speed_interval
         self.self_overlay = self_overlay
+        self.size_of_next_step = int(numpy.random.randint(self.speed_interval[0], self.speed_interval[1]))
 
         self.x_high_limit = x_high_limit
         self.y_high_limit = y_high_limit
@@ -143,17 +144,20 @@ class MovementController:
         Если объект не может попасть на следующий шаг — производит перерассчет
         :return: новые координаты объекта
         """
-        size_of_next_step = int(numpy.random.randint(self.speed_interval[0], self.speed_interval[1]))
+        size_of_next_step = self.size_of_next_step
 
         x, y = self.generate_new_coords(size_of_next_step)
 
-        if not self.check_overlay_coords_availability((x, y), added_objects, curr_object):
-            self.change_x_direction()
-            self.change_y_direction()
-            x, y = self.generate_new_coords(size_of_next_step)
+        collision_solver = 1
+        while not self.check_overlay_coords_availability((x, y), added_objects, curr_object):
 
-        if not self.check_bounding_coords_availability((x, y)):
-            x, y = self.generate_new_coords(size_of_next_step)
+            x, y = self.generate_new_coords(size_of_next_step * collision_solver)
+            collision_solver *= 1.1
+
+        outbound_solver = 1
+        while not self.check_bounding_coords_availability((x, y)):
+            x, y = self.generate_new_coords(size_of_next_step * outbound_solver)
+            outbound_solver *= 1.1
 
         self.x, self.y = x, y
         return self.x, self.y
@@ -164,8 +168,13 @@ class MovementController:
         for added_object in added_objects:
             if not compare_overlays_by_rectangles(added_object, curr_object, new_coords):
 
-                added_object.controller.change_x_direction()
-                added_object.controller.change_y_direction()
+                self.change_x_direction()
+                self.change_y_direction()
+
+                added_object.controller.right = self.right * -1
+                added_object.controller.down = self.down * -1
+                # added_object.controller.movement_law.refresh_params()
+                # added_object.controller.generate_new_coords(added_object.controller.size_of_next_step)
 
                 return False
         return True
