@@ -74,7 +74,7 @@ def load_required_objects(objects_dict, objects_list):
         raise ValueError('objects is missing')
 
 
-def initialize_controllers(temp_objects, movement_laws, speed_interval, self_overlay, background_shape):
+def initialize_controllers(temp_objects, movement_laws, speed_interval, self_overlay, background_shape, transforms=None):
     for curr_object in temp_objects:
 
         movement_law = numpy.random.choice(movement_laws)
@@ -87,7 +87,8 @@ def initialize_controllers(temp_objects, movement_laws, speed_interval, self_ove
                                                     x_high_limit=background_shape[1] - curr_object.image.shape[1],
                                                     y_high_limit=background_shape[0] - curr_object.image.shape[0],
                                                     x_low_limit=0,
-                                                    y_low_limit=0)
+                                                    y_low_limit=0,
+                                                    transforms=transforms)
 
 
 def generate_frames(duration, fps, background, temp_objects):

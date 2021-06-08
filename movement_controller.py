@@ -111,7 +111,7 @@ class MovementController:
     """
 
     def __init__(self, movement_law, speed_interval, self_overlay, x_high_limit, y_high_limit, x_low_limit=0,
-                 y_low_limit=0):
+                 y_low_limit=0, transforms=None):
         self.x = numpy.random.randint(x_low_limit, x_high_limit)
         self.y = numpy.random.randint(y_low_limit, y_high_limit)
         self.movement_law = movement_law
@@ -126,6 +126,8 @@ class MovementController:
 
         self.down = 1
         self.right = 1
+
+        self.transforms = transforms
 
     def generate_new_coords(self, size_of_next_step):
         """
@@ -144,6 +146,9 @@ class MovementController:
         Если объект не может попасть на следующий шаг — производит перерассчет
         :return: новые координаты объекта
         """
+        if self.transforms:
+            curr_object.image = self.transforms(image=curr_object.image_backup)
+
         size_of_next_step = self.size_of_next_step
 
         x, y = self.generate_new_coords(size_of_next_step)
