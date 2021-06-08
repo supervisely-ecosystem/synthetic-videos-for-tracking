@@ -5,6 +5,7 @@ from functions_video import *
 from movement_laws import *
 import imgaug.augmenters as iaa
 
+
 class Scene:
     def __init__(self, width=1920, height=1080, object_transforms=None):
         self.width = width
@@ -42,9 +43,9 @@ dataset_name = 'ds1'
 
 transform = iaa.Sequential([
     iaa.Affine(rotate=(-45, 45)),
-    # iaa.AdditiveGaussianNoise(scale=(10, 60)),
-    # iaa.AddToHueAndSaturation((-60, 60)),
-    # iaa.ElasticTransformation(alpha=90, sigma=9),
+    iaa.AdditiveGaussianNoise(scale=(10, 60)),
+    # iaa.AddToHueAndSaturation((-60, 60)),  # HUE now isn't working, cause Alpha channel
+    iaa.ElasticTransformation(alpha=90, sigma=9),
 ])
 
 custom_scene = Scene(object_transforms=transform)
