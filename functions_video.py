@@ -102,7 +102,6 @@ def generate_frames(duration, fps, background, temp_objects):
     :return: сгенерированные кадры
     """
 
-
     frames = []
 
     for _ in tqdm(range(fps * duration), desc='Objects to background: '):
