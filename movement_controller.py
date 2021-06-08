@@ -60,10 +60,11 @@ def compare_overlays(added_object, curr_object, new_coords):
     intersection_area, added_area = calculate_mask_area(inter_mask=intersected_mask,
                                                         added_mask=added_mask)
 
-    if intersected_mask / added_area > added_object.controller.self_overlay:
+
+
+    if (intersection_area / added_area) > added_object.controller.self_overlay:
         return False
     return True
-
 
 
 class MovementController:
@@ -118,9 +119,17 @@ class MovementController:
     def check_overlay_coords_availability(self, new_coords, added_objects, curr_object):
         """Проверка доступности по координат"""
         for added_object in added_objects:
-            if compare_overlays(added_object, curr_object, new_coords):
-                return False
+            x_changed = False
+            while not compare_overlays(added_object, curr_object, new_coords):
 
+                if not x_changed:
+                    self.change_x_direction()
+                    x_changed = True
+                else:
+                    self.change_x_direction()
+
+                x, y = self.generate_new_coords()
+                new_coords = (x, y)
 
     def check_bounding_coords_availability(self, new_coords):
         changed = False
