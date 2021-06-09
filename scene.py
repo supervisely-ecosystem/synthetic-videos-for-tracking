@@ -42,10 +42,10 @@ dataset_name = 'ds1'
 
 
 transform = iaa.Sequential([
-    iaa.Affine(rotate=(-45, 45)),
-    iaa.AdditiveGaussianNoise(scale=(10, 60)),
+    # iaa.Affine(rotate=(0, 0), scale=(0.5, 1)),
+    # iaa.AdditiveGaussianNoise(scale=(10, 60)),
     # iaa.AddToHueAndSaturation((-60, 60)),  # HUE now isn't working, cause Alpha channel
-    iaa.ElasticTransformation(alpha=90, sigma=9),
+    # iaa.ElasticTransformation(alpha=90, sigma=9),
 ])
 
 custom_scene = Scene(object_transforms=transform)
