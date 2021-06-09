@@ -109,13 +109,14 @@ def generate_frames(duration, fps, background, temp_objects):
         frame_background = background.copy()
         added_objects = []
         for curr_object in temp_objects:
-
             x, y = curr_object.controller.next_step(added_objects, curr_object)
             frame_background = add_object_to_background(
                 frame_background, curr_object.image, x, y)
-
             added_objects.append(curr_object)
+
         frames.append(frame_background)
+
+
         # cv2.imshow(f'frame {len(frames)}', frame_background)
         # cv2.waitKey()
 

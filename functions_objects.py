@@ -15,6 +15,7 @@ class ExtractedObject:
         self.image = image
         self.image_backup = image
         self.mask = mask
+        self.mask_backup = mask
         self.area = area
         self.class_name = class_name
         self.proj_path = proj_path
