@@ -74,7 +74,7 @@ def load_required_objects(objects_dict, objects_list):
         raise ValueError('objects is missing')
 
 
-def initialize_controllers(temp_objects, movement_laws, speed_interval, self_overlay, background_shape):
+def initialize_controllers(temp_objects, movement_laws, speed_interval, self_overlay, background_shape, transforms=None):
     for curr_object in temp_objects:
 
         movement_law = numpy.random.choice(movement_laws)
@@ -87,7 +87,8 @@ def initialize_controllers(temp_objects, movement_laws, speed_interval, self_ove
                                                     x_high_limit=background_shape[1] - curr_object.image.shape[1],
                                                     y_high_limit=background_shape[0] - curr_object.image.shape[0],
                                                     x_low_limit=0,
-                                                    y_low_limit=0)
+                                                    y_low_limit=0,
+                                                    transforms=transforms)
 
 
 def generate_frames(duration, fps, background, temp_objects):
@@ -108,13 +109,14 @@ def generate_frames(duration, fps, background, temp_objects):
         frame_background = background.copy()
         added_objects = []
         for curr_object in temp_objects:
-
             x, y = curr_object.controller.next_step(added_objects, curr_object)
             frame_background = add_object_to_background(
                 frame_background, curr_object.image, x, y)
-
             added_objects.append(curr_object)
+
         frames.append(frame_background)
+
+
         # cv2.imshow(f'frame {len(frames)}', frame_background)
         # cv2.waitKey()
 

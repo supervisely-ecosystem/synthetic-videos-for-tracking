@@ -21,14 +21,13 @@ class LinearLaw:
         return (self.k * x - self.k * (x - 1)) + self.b
 
 
-
 class RandomWalkingLaw:
     def __init__(self, x_high_limit, y_high_limit, x_low_limit=0,
                  y_low_limit=0):
 
-        self.x_high_limit = x_high_limit * 2
+        self.x_high_limit = x_high_limit * 4
         self.y_high_limit = y_high_limit + y_high_limit
-        self.x_low_limit = x_low_limit - x_low_limit * 2
+        self.x_low_limit = x_low_limit - 500
         self.y_low_limit = y_low_limit - y_low_limit
 
         self.x = numpy.linspace(self.x_low_limit, self.x_high_limit, num=40, endpoint=True)
