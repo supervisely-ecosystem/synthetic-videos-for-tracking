@@ -1,8 +1,10 @@
 import cv2
 import numpy
 from tqdm import tqdm
+import supervisely_lib as sly
 
 from movement_controller import MovementController
+
 
 from logger import logger
 
@@ -91,21 +93,32 @@ def initialize_controllers(temp_objects, movement_laws, speed_interval, self_ove
                                                     transforms=transforms)
 
 
-def generate_frames(duration, fps, background, temp_objects):
+def keep_annotations_by_frame(temp_objects, frame_index, ann_keeper):
+    annotations_for_frame = []
+    class_names = []
+    for curr_object in temp_objects:
+        x, y = curr_object.controller.x, curr_object.controller.y
+        curr_object_coords = sly.Rectangle(y, x, y + curr_object.image.shape[0],
+                                           x + curr_object.image.shape[1])
+        annotations_for_frame.append(curr_object_coords)
+        class_names.append(curr_object.class_name)
+    ann_keeper.add_figures_by_frame(annotations_for_frame, class_names, frame_index)
+
+
+def generate_frames(duration, fps, background, temp_objects, ann_keeper):
     """
     Генерирует кадры видео на основе параметров
     :param duration: длительность в секундах
     :param fps: количество кадров в секунду
     :param background: фоновое изображение
     :param temp_objects: объекты для вставки в кадр
-    :param movement_law: закон перемещения объектов
-    :param speed_interval: интервал скорости перемещения объектов
+    :param ann_keeper: хранитель аннотаций формата SLY
     :return: сгенерированные кадры
     """
 
     frames = []
 
-    for _ in tqdm(range(fps * duration), desc='Objects to background: '):
+    for frame_index in tqdm(range(fps * duration), desc='Objects to background: '):
         frame_background = background.copy()
         added_objects = []
         for curr_object in temp_objects:
@@ -116,6 +129,7 @@ def generate_frames(duration, fps, background, temp_objects):
 
         frames.append(frame_background)
 
+        keep_annotations_by_frame(added_objects, frame_index, ann_keeper)
 
         # cv2.imshow(f'frame {len(frames)}', frame_background)
         # cv2.waitKey()

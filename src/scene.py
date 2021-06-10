@@ -2,6 +2,8 @@ from functions_background import *
 from functions_objects import *
 from functions_video import *
 
+from functions_ann_keeper import AnnotationKeeper
+
 from movement_laws import *
 import imgaug.augmenters as iaa
 
@@ -31,9 +33,13 @@ class Scene:
         initialize_controllers(temp_objects, movement_laws, speed_interval,
                                                                self_overlay, self.backgrounds[0].shape,
                                transforms=self.object_transforms)
-        frames = generate_frames(fps, duration, self.backgrounds[0], temp_objects)
+
+        ann_keeper = AnnotationKeeper(self.backgrounds[0].shape, temp_objects)
+
+        frames = generate_frames(fps, duration, self.backgrounds[0], temp_objects, ann_keeper)
         video_shape = (self.backgrounds[0].shape[1], self.backgrounds[0].shape[0])
         write_frames_to_file(video_name, fps, frames, video_shape)
+        ann_keeper.upload_annotation()
 
 
 project_path = './objects/lemons_annotated'
@@ -53,7 +59,7 @@ custom_scene.add_background('./background_img/large_space.jpg')
 # custom_scene.add_background('./background_img/white_test.jpg')
 custom_scene.add_objects(project_path, dataset_name)
 custom_scene.generate_video(video_name='./test1_random_walk_60fps.mp4',
-                            duration=10,
+                            duration=1,
                             fps=60,
                             objects_dict={'lemon': 6},
                             # objects_dict={'square': 4},
