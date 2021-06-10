@@ -30,7 +30,7 @@ class AnnotationKeeper:
         self.figures.append(temp_figures)
 
     def save_annotation(self):
-        """TODO: saving to dir function"""
+        """TODO: upload to SLY function"""
         self.get_frames_list()
         self.frames_collection = sly.FrameCollection(self.frames_list)
 
