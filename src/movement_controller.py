@@ -62,24 +62,37 @@ class MovementController:
     Класс позволяет контроллировать расположение объекта на сцене
     """
 
-    def __init__(self, movement_law, speed_interval, self_overlay, x_high_limit, y_high_limit, x_low_limit=0,
-                 y_low_limit=0, transforms=None):
-        self.x = numpy.random.randint(x_low_limit, x_high_limit)
-        self.y = numpy.random.randint(y_low_limit, y_high_limit)
+    def __init__(self, curr_object, movement_law, speed_interval, self_overlay, background_shape, transforms=None):
+
         self.movement_law = movement_law
         self.speed_interval = speed_interval
         self.self_overlay = self_overlay
         self.size_of_next_step = int(numpy.random.randint(self.speed_interval[0], self.speed_interval[1]))
 
-        self.x_high_limit = x_high_limit
-        self.y_high_limit = y_high_limit
-        self.x_low_limit = x_low_limit
-        self.y_low_limit = y_low_limit
+        self.background_shape = background_shape
+
+        self.x_high_limit = 0
+        self.y_high_limit = 0
+        self.x_low_limit = 0
+        self.y_low_limit = 0
+
+        self.calculate_allowable_limits(curr_object)
+
+        self.x = numpy.random.randint(self.x_low_limit, self.x_high_limit)
+        self.y = numpy.random.randint(self.y_low_limit, self.y_high_limit)
 
         self.down = 1
         self.right = 1
 
         self.transforms = transforms
+
+    def calculate_allowable_limits(self, curr_object):
+        image_shape = curr_object.image.shape
+
+        self.x_high_limit = self.background_shape[1] - image_shape[1]
+        self.y_high_limit = self.background_shape[0] - image_shape[0]
+        self.x_low_limit = 0
+        self.y_low_limit = 0
 
     def generate_new_coords(self, size_of_next_step):
         """
@@ -89,7 +102,7 @@ class MovementController:
 
         x = self.x + size_of_next_step * self.right
         y_div = self.movement_law.calculator(x)
-        y = self.y + y_div * self.down
+        y = self.y + y_div * size_of_next_step * self.down
         return int(x), int(y)
 
     def next_step(self, added_objects, curr_object):
@@ -104,6 +117,7 @@ class MovementController:
             # curr_object.image, curr_object.mask = self.transforms(image=curr_object.image_backup,
                                                                   # segmentation_maps=curr_object.mask_backup)
 
+        self.calculate_allowable_limits(curr_object)
         size_of_next_step = self.size_of_next_step
 
         x, y = self.generate_new_coords(size_of_next_step)
@@ -112,12 +126,16 @@ class MovementController:
         while not self.check_overlay_coords_availability((x, y), added_objects, curr_object):
 
             x, y = self.generate_new_coords(size_of_next_step * collision_solver)
-            collision_solver *= 1.1
+            if collision_solver > 10:
+                print()
+            collision_solver += 0.1
 
         outbound_solver = 1
         while not self.check_bounding_coords_availability((x, y)):
             x, y = self.generate_new_coords(size_of_next_step * outbound_solver)
-            outbound_solver *= 1.1
+            if outbound_solver > 10:
+                print()
+            outbound_solver += 0.1
 
         self.x, self.y = x, y
         return self.x, self.y

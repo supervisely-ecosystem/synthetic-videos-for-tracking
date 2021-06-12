@@ -3,15 +3,21 @@ from logger import logger
 from supervisely_lib.video_annotation.key_id_map import KeyIdMap
 from init_api import *
 
+from supervisely_lib.annotation.tag_meta import TagValueType
+
 
 class AnnotationKeeper:
-    def __init__(self, video_shape, current_objects, project_name):
+    def __init__(self, video_shape, current_objects, project_id=None):
 
         self.video_shape = video_shape
 
-        self.new_project = api.project.create(WORKSPACE_ID, project_name, type=sly.ProjectType.VIDEOS,
-                                         change_name_if_conflict=True)
-        self.new_dataset = api.dataset.create(self.new_project.id, f'ds_{self.new_project.id}', change_name_if_conflict=True)
+        if not project_id:
+            self.new_project = api.project.create(WORKSPACE_ID, 'TEST', type=sly.ProjectType.VIDEOS,
+                                                  change_name_if_conflict=True)
+            self.new_dataset = api.dataset.create(self.new_project.id, f'ds_{self.new_project.id}',
+                                                  change_name_if_conflict=True)
+        else:
+            self.new_dataset = api.dataset.get_list(project_id)[0]
 
         self.key_id_map = KeyIdMap()
         self.sly_objects_list = []
@@ -26,10 +32,11 @@ class AnnotationKeeper:
         self.frames_list = []
         self.frames_collection = []
 
-        temp = sly.ObjClassCollection(self.sly_objects_list)
+        self.meta = sly.ProjectMeta(obj_classes=sly.ObjClassCollection(self.sly_objects_list))
 
-        self.meta = sly.ProjectMeta(obj_classes=sly.ObjClassCollection(self.sly_objects_list),
-                                    project_type=sly.VideoProject)
+        if not project_id:
+            api.project.update_meta(self.new_project.id, self.meta.to_json())
+
 
     def add_figures_by_frame(self, coords_data, class_names, frame_index):
         temp_figures = []
@@ -41,13 +48,17 @@ class AnnotationKeeper:
         self.figures.append(temp_figures)
 
     def upload_annotation(self, video_path):
+
         self.get_frames_list()
         self.frames_collection = sly.FrameCollection(self.frames_list)
 
         video_annotation = sly.VideoAnnotation(self.video_shape, len(self.frames_list),
-                                  self.video_object_collection, self.frames_collection).to_json(self.key_id_map)
+                                  self.video_object_collection, self.frames_collection)
+            # .to_json(self.key_id_map)
 
-        video_name = video_path.split('/')[-1][-4]
+        # converted_video_annotation = sly.VideoAnnotation.from_json(video_annotation, self.meta)
+
+        video_name = video_path.split('/')[-1]
         file_info = api.video.upload_paths(self.new_dataset.id, [video_name], [video_path])
         api.video.annotation.append(file_info[0].id, video_annotation)
 
