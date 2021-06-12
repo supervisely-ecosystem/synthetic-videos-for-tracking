@@ -112,7 +112,7 @@ def extract_object_from_image(image_as_arr, label):
     mask_matrix = geometry.data
 
     cropped_with_alpha = to_transparent_background(mask_matrix, cropped_image)
-    cv2.imwrite(f'transparent_{label.obj_class.name}.png', cropped_with_alpha)  # для отладки
+    # cv2.imwrite(f'transparent_{label.obj_class.name}.png', cropped_with_alpha)  # для отладки
     return cropped_with_alpha, mask_matrix
 
 

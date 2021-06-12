@@ -5,7 +5,11 @@ from functions_video import *
 from functions_ann_keeper import AnnotationKeeper
 
 from movement_laws import *
+
 import imgaug.augmenters as iaa
+
+import numpy
+
 
 
 class Scene:
@@ -28,18 +32,21 @@ class Scene:
         logger.info(f'available objects:\n'
                     f'{get_available_objects(self.objects)}\n')
 
-    def generate_video(self, video_name, fps, duration, objects_dict, movement_laws, self_overlay, speed_interval):
+    def generate_video(self, video_path, fps, duration, objects_dict, movement_laws, self_overlay,
+                       speed_interval, project_id):
         temp_objects = load_required_objects(objects_dict, self.objects)
         initialize_controllers(temp_objects, movement_laws, speed_interval,
                                                                self_overlay, self.backgrounds[0].shape,
                                transforms=self.object_transforms)
 
-        ann_keeper = AnnotationKeeper(self.backgrounds[0].shape, temp_objects)
+        ann_keeper = AnnotationKeeper(video_shape=self.backgrounds[0].shape,
+                                      current_objects=temp_objects,
+                                      project_id=project_id)
 
         frames = generate_frames(fps, duration, self.backgrounds[0], temp_objects, ann_keeper)
         video_shape = (self.backgrounds[0].shape[1], self.backgrounds[0].shape[0])
-        write_frames_to_file(video_name, fps, frames, video_shape)
-        ann_keeper.upload_annotation()
+        write_frames_to_file(video_path, fps, frames, video_shape)
+        ann_keeper.upload_annotation(video_path)
 
 
 project_path = './objects/lemons_annotated'
@@ -47,24 +54,30 @@ project_path = './objects/lemons_annotated'
 dataset_name = 'ds1'
 
 
-transform = iaa.Sequential([
-    # iaa.Affine(rotate=(0, 0), scale=(0.5, 1)),
-    # iaa.AdditiveGaussianNoise(scale=(10, 60)),
-    # iaa.AddToHueAndSaturation((-60, 60)),  # HUE now isn't working, cause Alpha channel
-    # iaa.ElasticTransformation(alpha=90, sigma=9),
-])
+for i in range(1, 11):
+    div = 0.02 * i
+    transform = iaa.Sequential([
+        iaa.Resize((1 - div, 1 + div)),
+        iaa.Rot90((1, i), keep_size=False),
+        iaa.Affine(rotate=(-3 * i, 3 * i)),
+        # iaa.AddToBrightness((-30, 30),  from_colorspace='RGBA'),
+        iaa.AdditiveGaussianNoise(scale=(0, 2 * i)),
+        # iaa.AddToHueAndSaturation((-60, 60)),  # HUE now isn't working, cause Alpha channel
+        # iaa.ElasticTransformation(alpha=90, sigma=9),
+    ])
 
-custom_scene = Scene(object_transforms=transform)
-custom_scene.add_background('./background_img/large_space.jpg')
-# custom_scene.add_background('./background_img/white_test.jpg')
-custom_scene.add_objects(project_path, dataset_name)
-custom_scene.generate_video(video_name='./test1_random_walk_60fps.mp4',
-                            duration=1,
-                            fps=60,
-                            objects_dict={'lemon': 6},
-                            # objects_dict={'square': 4},
-                            movement_laws=[{'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
-                                           {'law': LinearLaw, 'params': ()}],
-                            self_overlay=0.4,
-                            speed_interval=(1, 10))
+    custom_scene = Scene(object_transforms=transform)
+    custom_scene.add_background(f'./background_img/{i}.jpg')
+
+    custom_scene.add_objects(project_path, dataset_name)
+    custom_scene.generate_video(video_path=f'./test{i}_900frames.mp4',
+                                duration=60,
+                                fps=15,
+                                objects_dict={'lemon': 4},
+                                # objects_dict={'square': 4},
+                                movement_laws=[{'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
+                                               {'law': LinearLaw, 'params': ()}],
+                                self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
+                                speed_interval=(1, 8 * i),
+                                project_id=4796)
 
