@@ -37,13 +37,13 @@ def compare_overlays_by_rectangles(added_object, curr_object, new_coords):
 
     ra = Rectangle(added_object.controller.x,
                    added_object.controller.y,
-                   added_object.controller.x + added_mask_shape[0],
-                   added_object.controller.y + added_mask_shape[1])
+                   added_object.controller.x + added_mask_shape[1],
+                   added_object.controller.y + added_mask_shape[0])
     rb = Rectangle(
-        new_coords[0],
         new_coords[1],
-        new_coords[0] + curr_mask_shape[0],
-        new_coords[1] + curr_mask_shape[1]
+        new_coords[0],
+        new_coords[1] + curr_mask_shape[1],
+        new_coords[0] + curr_mask_shape[0]
     )
 
     intersection_area = area(ra, rb)
@@ -62,7 +62,8 @@ class MovementController:
     Класс позволяет контроллировать расположение объекта на сцене
     """
 
-    def __init__(self, curr_object, movement_law, speed_interval, self_overlay, background_shape, transforms=None):
+    def __init__(self, curr_object, movement_law, speed_interval, self_overlay, background_shape,
+                 general_transforms=None, minor_transforms=None):
 
         self.movement_law = movement_law
         self.speed_interval = speed_interval
@@ -76,7 +77,7 @@ class MovementController:
         self.x_low_limit = 0
         self.y_low_limit = 0
 
-        self.calculate_allowable_limits(curr_object)
+        self.calculate_allowable_limits(curr_object.image)
 
         self.x = numpy.random.randint(self.x_low_limit, self.x_high_limit)
         self.y = numpy.random.randint(self.y_low_limit, self.y_high_limit)
@@ -84,10 +85,11 @@ class MovementController:
         self.down = 1
         self.right = 1
 
-        self.transforms = transforms
+        self.general_transforms = general_transforms  # applied on limits and collisions
+        self.minor_transforms = minor_transforms  # applied on every step
 
-    def calculate_allowable_limits(self, curr_object):
-        image_shape = curr_object.image.shape
+    def calculate_allowable_limits(self, object_image):
+        image_shape = object_image.shape
 
         self.x_high_limit = self.background_shape[1] - image_shape[1]
         self.y_high_limit = self.background_shape[0] - image_shape[0]
@@ -105,19 +107,26 @@ class MovementController:
         y = self.y + y_div * size_of_next_step * self.down
         return int(x), int(y)
 
+    def general_transform_object(self, image):
+        image = self.general_transforms(image=image)
+        self.calculate_allowable_limits(image)
+        return image
+        # curr_object.image, curr_object.mask = self.transforms(image=curr_object.image_backup,
+        # segmentation_maps=curr_object.mask_backup)
+
     def next_step(self, added_objects, curr_object):
         """
         Рассчитывает следующий шаг.
         Если объект не может попасть на следующий шаг — производит перерассчет
         :return: новые координаты объекта
         """
-        if self.transforms:
 
-            curr_object.image = self.transforms(image=curr_object.image_backup)
-            # curr_object.image, curr_object.mask = self.transforms(image=curr_object.image_backup,
-                                                                  # segmentation_maps=curr_object.mask_backup)
+        is_general_transformed = False
 
-        self.calculate_allowable_limits(curr_object)
+        if self.minor_transforms:
+            curr_object.image = self.minor_transforms(image=curr_object.image_backup)
+
+        self.calculate_allowable_limits(curr_object.image)
         size_of_next_step = self.size_of_next_step
 
         x, y = self.generate_new_coords(size_of_next_step)
@@ -125,17 +134,32 @@ class MovementController:
         collision_solver = 1
         while not self.check_overlay_coords_availability((x, y), added_objects, curr_object):
 
+            if self.general_transforms and not is_general_transformed:
+                general_transformed = self.general_transform_object(curr_object.image_backup)
+
+                curr_object.image = general_transformed
+                curr_object.image_backup = general_transformed
+
+                is_general_transformed = True
+
             x, y = self.generate_new_coords(size_of_next_step * collision_solver)
-            if collision_solver > 10:
-                print()
-            collision_solver += 0.1
+
+            collision_solver *= 1.05
 
         outbound_solver = 1
         while not self.check_bounding_coords_availability((x, y)):
+
+            if self.general_transforms and not is_general_transformed:
+                general_transformed = self.general_transform_object(curr_object.image_backup)
+
+                curr_object.image = general_transformed
+                curr_object.image_backup = general_transformed
+
+                is_general_transformed = True
+
             x, y = self.generate_new_coords(size_of_next_step * outbound_solver)
-            if outbound_solver > 10:
-                print()
-            outbound_solver += 0.1
+
+            outbound_solver *= 1.05
 
         self.x, self.y = x, y
         return self.x, self.y

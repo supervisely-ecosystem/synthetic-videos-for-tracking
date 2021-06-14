@@ -76,7 +76,10 @@ def load_required_objects(objects_dict, objects_list):
         raise ValueError('objects is missing')
 
 
-def initialize_controllers(temp_objects, movement_laws, speed_interval, self_overlay, background_shape, transforms=None):
+def initialize_controllers(temp_objects, movement_laws, speed_interval, self_overlay, background_shape,
+                           general_transforms=None,
+                           minor_transforms=None):
+
     for curr_object in temp_objects:
 
         movement_law = numpy.random.choice(movement_laws)
@@ -92,7 +95,8 @@ def initialize_controllers(temp_objects, movement_laws, speed_interval, self_ove
                                                     # y_high_limit=background_shape[0] - curr_object.image.shape[0],
                                                     # x_low_limit=0,
                                                     # y_low_limit=0,
-                                                    transforms=transforms)
+                                                    general_transforms=general_transforms,
+                                                    minor_transforms=minor_transforms)
 
 
 def keep_annotations_by_frame(temp_objects, frame_index, ann_keeper):
@@ -107,7 +111,7 @@ def keep_annotations_by_frame(temp_objects, frame_index, ann_keeper):
     ann_keeper.add_figures_by_frame(annotations_for_frame, class_names, frame_index)
 
 
-def generate_frames(duration, fps, background, temp_objects, ann_keeper):
+def generate_frames(duration, fps, background, temp_objects, ann_keeper=None):
     """
     Генерирует кадры видео на основе параметров
     :param duration: длительность в секундах
@@ -132,7 +136,8 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper):
             # print(f'after {curr_object.image.shape}')
         frames.append(frame_background)
 
-        keep_annotations_by_frame(added_objects, frame_index, ann_keeper)
+        if ann_keeper:
+            keep_annotations_by_frame(added_objects, frame_index, ann_keeper)
 
         # cv2.imshow(f'frame {len(frames)}', frame_background)
         # cv2.waitKey()

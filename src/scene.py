@@ -13,12 +13,14 @@ import numpy
 
 
 class Scene:
-    def __init__(self, width=1920, height=1080, object_transforms=None):
+    def __init__(self, width=1920, height=1080, object_general_transforms=None,
+                 object_minor_transforms=None):
         self.width = width
         self.height = height
         self.backgrounds = []
         self.objects = []
-        self.object_transforms = object_transforms
+        self.object_general_transforms = object_general_transforms
+        self.object_minor_transforms = object_minor_transforms
 
     def add_background(self, background_path):
         self.backgrounds.append(get_cv2_background_by_path(background_path))
@@ -37,7 +39,8 @@ class Scene:
         temp_objects = load_required_objects(objects_dict, self.objects)
         initialize_controllers(temp_objects, movement_laws, speed_interval,
                                                                self_overlay, self.backgrounds[0].shape,
-                               transforms=self.object_transforms)
+                               general_transforms=self.object_general_transforms,
+                               minor_transforms=self.object_minor_transforms)
 
         ann_keeper = AnnotationKeeper(video_shape=self.backgrounds[0].shape,
                                       current_objects=temp_objects,
@@ -54,19 +57,22 @@ project_path = './objects/lemons_annotated'
 dataset_name = 'ds1'
 
 
-for i in range(1, 11):
+for i in range(5, 11):
     div = 0.02 * i
-    transform = iaa.Sequential([
+    general_transform = iaa.Sequential([
         iaa.Resize((1 - div, 1 + div)),
         iaa.Rot90((1, i), keep_size=False),
-        iaa.Affine(rotate=(-3 * i, 3 * i)),
+    ])
+
+    minor_transform = iaa.Sequential([
+        iaa.Affine(rotate=(-4 * i, 4 * i)),
         # iaa.AddToBrightness((-30, 30),  from_colorspace='RGBA'),
         iaa.AdditiveGaussianNoise(scale=(0, 2 * i)),
         # iaa.AddToHueAndSaturation((-60, 60)),  # HUE now isn't working, cause Alpha channel
         # iaa.ElasticTransformation(alpha=90, sigma=9),
     ])
 
-    custom_scene = Scene(object_transforms=transform)
+    custom_scene = Scene(object_general_transforms=general_transform, object_minor_transforms=minor_transform)
     custom_scene.add_background(f'./background_img/{i}.jpg')
 
     custom_scene.add_objects(project_path, dataset_name)
@@ -78,6 +84,6 @@ for i in range(1, 11):
                                 movement_laws=[{'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
                                                {'law': LinearLaw, 'params': ()}],
                                 self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
-                                speed_interval=(1, 8 * i),
+                                speed_interval=(1, 8 + i),
                                 project_id=4796)
 
