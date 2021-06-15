@@ -10,7 +10,7 @@ class LinearLaw:
     2. смещение b
     """
     def __init__(self):
-        self.k = numpy.random.uniform(0, 3)
+        self.k = numpy.random.uniform(0, 2)
         self.b = numpy.random.uniform(0, 10)
 
     def refresh_params(self):
