@@ -125,6 +125,7 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper=None):
     frames = []
 
     for frame_index in tqdm(range(fps * duration), desc='Objects to background: '):
+    # for frame_index in range(fps * duration):
         frame_background = background.copy()
         added_objects = []
         for curr_object in temp_objects:
@@ -133,6 +134,9 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper=None):
             frame_background = add_object_to_background(
                 frame_background, curr_object.image, x, y)
             added_objects.append(curr_object)
+
+            # cv2.imshow(f'{frame_index}', frame_background)
+            # cv2.waitKey(  )
             # print(f'after {curr_object.image.shape}')
         frames.append(frame_background)
 

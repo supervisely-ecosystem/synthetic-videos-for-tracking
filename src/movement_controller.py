@@ -24,8 +24,8 @@ def calculate_base_coords(added_coords, new_coords, lt=True):
 
 
 def compare_overlays_by_rectangles(added_object, curr_object, new_coords):
-    added_mask_shape = added_object.mask.shape
-    curr_mask_shape = curr_object.mask.shape
+    added_mask_shape = added_object.image.shape
+    curr_mask_shape = curr_object.image.shape
 
     # intersected_mask = calculate_intersection(added_rebased_mask, curr_rebased_mask).astype(int)
     # intersection_area, added_area = calculate_mask_area(inter_mask=intersected_mask,
@@ -40,13 +40,14 @@ def compare_overlays_by_rectangles(added_object, curr_object, new_coords):
                    added_object.controller.x + added_mask_shape[1],
                    added_object.controller.y + added_mask_shape[0])
     rb = Rectangle(
-        new_coords[1],
         new_coords[0],
-        new_coords[1] + curr_mask_shape[1],
-        new_coords[0] + curr_mask_shape[0]
+        new_coords[1],
+        new_coords[0] + curr_mask_shape[1],
+        new_coords[1] + curr_mask_shape[0]
     )
 
     intersection_area = area(ra, rb)
+    # print(intersection_area)
 
     if intersection_area:
         # logger.debug(f'\nlower object area {added_area}\n'
@@ -141,10 +142,12 @@ class MovementController:
                 curr_object.image_backup = general_transformed
 
                 is_general_transformed = True
+                if collision_solver > 10:
+                    print()
 
             x, y = self.generate_new_coords(size_of_next_step * collision_solver)
 
-            collision_solver *= 1.05
+            collision_solver += 0.1
 
         outbound_solver = 1
         while not self.check_bounding_coords_availability((x, y)):
@@ -156,10 +159,12 @@ class MovementController:
                 curr_object.image_backup = general_transformed
 
                 is_general_transformed = True
+                if outbound_solver > 10:
+                    print()
 
             x, y = self.generate_new_coords(size_of_next_step * outbound_solver)
 
-            outbound_solver *= 1.05
+            outbound_solver += 0.1
 
         self.x, self.y = x, y
         return self.x, self.y
