@@ -1,8 +1,10 @@
 import cv2
 import numpy
 from tqdm import tqdm
+import supervisely_lib as sly
 
 from movement_controller import MovementController
+
 
 from logger import logger
 
@@ -74,48 +76,72 @@ def load_required_objects(objects_dict, objects_list):
         raise ValueError('objects is missing')
 
 
-def initialize_controllers(temp_objects, movement_laws, speed_interval, self_overlay, background_shape, transforms=None):
+def initialize_controllers(temp_objects, movement_laws, speed_interval, self_overlay, background_shape,
+                           general_transforms=None,
+                           minor_transforms=None):
+
     for curr_object in temp_objects:
 
         movement_law = numpy.random.choice(movement_laws)
         curr_law = movement_law['law']
         curr_params = movement_law['params']
 
-        curr_object.controller = MovementController(movement_law=curr_law(*curr_params),
+        curr_object.controller = MovementController(curr_object=curr_object,
+                                                    movement_law=curr_law(*curr_params),
                                                     speed_interval=speed_interval,
                                                     self_overlay=self_overlay,  # how much the object can be covered
-                                                    x_high_limit=background_shape[1] - curr_object.image.shape[1],
-                                                    y_high_limit=background_shape[0] - curr_object.image.shape[0],
-                                                    x_low_limit=0,
-                                                    y_low_limit=0,
-                                                    transforms=transforms)
+                                                    background_shape=background_shape,
+                                                    # x_high_limit=background_shape[1] - curr_object.image.shape[1],
+                                                    # y_high_limit=background_shape[0] - curr_object.image.shape[0],
+                                                    # x_low_limit=0,
+                                                    # y_low_limit=0,
+                                                    general_transforms=general_transforms,
+                                                    minor_transforms=minor_transforms)
 
 
-def generate_frames(duration, fps, background, temp_objects):
+def keep_annotations_by_frame(temp_objects, frame_index, ann_keeper):
+    annotations_for_frame = []
+    class_names = []
+    for curr_object in temp_objects:
+        x, y = curr_object.controller.x, curr_object.controller.y
+        curr_object_coords = sly.Rectangle(y, x, y + curr_object.image.shape[0] - 1,
+                                           x + curr_object.image.shape[1] - 1)
+        annotations_for_frame.append(curr_object_coords)
+        class_names.append(curr_object.class_name)
+    ann_keeper.add_figures_by_frame(annotations_for_frame, class_names, frame_index)
+
+
+def generate_frames(duration, fps, background, temp_objects, ann_keeper=None):
     """
     Генерирует кадры видео на основе параметров
     :param duration: длительность в секундах
     :param fps: количество кадров в секунду
     :param background: фоновое изображение
     :param temp_objects: объекты для вставки в кадр
-    :param movement_law: закон перемещения объектов
-    :param speed_interval: интервал скорости перемещения объектов
+    :param ann_keeper: хранитель аннотаций формата SLY
     :return: сгенерированные кадры
     """
 
     frames = []
 
-    for _ in tqdm(range(fps * duration), desc='Objects to background: '):
+    for frame_index in tqdm(range(fps * duration), desc='Objects to background: '):
+    # for frame_index in range(fps * duration):
         frame_background = background.copy()
         added_objects = []
         for curr_object in temp_objects:
+            # print(f'before {curr_object.image_backup.shape}')
             x, y = curr_object.controller.next_step(added_objects, curr_object)
             frame_background = add_object_to_background(
                 frame_background, curr_object.image, x, y)
             added_objects.append(curr_object)
 
+            # cv2.imshow(f'{frame_index}', frame_background)
+            # cv2.waitKey(  )
+            # print(f'after {curr_object.image.shape}')
         frames.append(frame_background)
 
+        if ann_keeper:
+            keep_annotations_by_frame(added_objects, frame_index, ann_keeper)
 
         # cv2.imshow(f'frame {len(frames)}', frame_background)
         # cv2.waitKey()
