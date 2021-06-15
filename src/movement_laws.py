@@ -27,10 +27,10 @@ class RandomWalkingLaw:
 
         self.x_high_limit = x_high_limit * 4
         self.y_high_limit = y_high_limit + y_high_limit
-        self.x_low_limit = x_low_limit - 500
+        self.x_low_limit = x_low_limit - x_high_limit
         self.y_low_limit = y_low_limit - y_low_limit
 
-        self.x = numpy.linspace(self.x_low_limit, self.x_high_limit, num=40, endpoint=True)
+        self.x = numpy.linspace(self.x_low_limit, self.x_high_limit, num=60, endpoint=True)
 
         self.y = numpy.random.randint(low=self.y_low_limit, high=self.y_high_limit, size=(len(self.x),))
         self.f = interp1d(self.x, self.y, kind='cubic')
