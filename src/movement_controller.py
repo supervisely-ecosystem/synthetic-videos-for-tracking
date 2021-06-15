@@ -101,6 +101,9 @@ class MovementController:
         self.x_low_limit = 0
         self.y_low_limit = 0
 
+        if self.y_high_limit < 0:
+            print()
+
     def generate_new_coords(self, size_of_next_step):
         """
         Генерирует следующий шаг координат
@@ -120,11 +123,11 @@ class MovementController:
                                                                  segmentation_maps=segment_map)
             mask_aug = segment_map_aug.get_arr()
 
-            curr_object.image = image_aug
-            curr_object.image_backup = image_aug
-            curr_object.mask = mask_aug
-
-            self.calculate_allowable_limits(image_aug)
+            if not ((image_aug.shape[0] < 350 or image_aug.shape[1] < 350) or
+                    (image_aug.shape[0] > 1000 or image_aug.shape[1] > 1000)):
+                curr_object.image = image_aug
+                curr_object.image_backup = image_aug
+                curr_object.mask = mask_aug
 
         else:
             rgb_image = cv2.cvtColor(curr_object.image_backup, cv2.COLOR_RGBA2RGB)
@@ -140,6 +143,8 @@ class MovementController:
 
             curr_object.image = rgba_image
 
+        self.calculate_allowable_limits(curr_object.image)
+
         return 0
 
     def next_step(self, added_objects, curr_object):
@@ -154,7 +159,6 @@ class MovementController:
         if self.minor_transforms:
             self.transform_object(curr_object, general_transform=False)
 
-        self.calculate_allowable_limits(curr_object.image)
         size_of_next_step = self.size_of_next_step
 
         x, y = self.generate_new_coords(size_of_next_step)
@@ -166,25 +170,26 @@ class MovementController:
                 self.transform_object(curr_object, general_transform=True)
 
                 is_general_transformed = True
-                if collision_solver > 10:
-                    print()
+            if collision_solver > 1:
+                print()
 
             x, y = self.generate_new_coords(size_of_next_step * collision_solver)
 
-            collision_solver += 0.1
+            collision_solver *= 1.01
 
         outbound_solver = 1
-        while not self.check_bounding_coords_availability((x, y)):
+        while not self.check_bounding_coords_availability((x, y), curr_object):
             if self.general_transforms and not is_general_transformed:
                 self.transform_object(curr_object, general_transform=True)
 
                 is_general_transformed = True
-                if outbound_solver > 10:
-                    print()
+            if outbound_solver > 10:
+                print()
 
-            x, y = self.generate_new_coords(size_of_next_step * outbound_solver)
+            x, y = curr_object.controller.x, curr_object.controller.y
+            # x, y = self.generate_new_coords(size_of_next_step * outbound_solver)
 
-            outbound_solver += 0.1
+            outbound_solver *= 1.01
 
         self.x, self.y = x, y
         return self.x, self.y
@@ -205,13 +210,13 @@ class MovementController:
                 return False
         return True
 
-    def check_bounding_coords_availability(self, new_coords):
+    def check_bounding_coords_availability(self, new_coords, curr_object):
         changed = False
-        if not self.check_x_availability(new_coords[0]):
+        if not self.check_and_fix_x_availability(new_coords[0], curr_object):
             self.change_x_direction()
             changed = True
 
-        if not self.check_y_availability(new_coords[1]):
+        if not self.check_and_fix_y_availability(new_coords[1], curr_object):
             self.change_y_direction()
             changed = True
 
@@ -219,15 +224,23 @@ class MovementController:
             return False
         return True
 
-    def check_y_availability(self, new_y):
-        if new_y > self.y_high_limit or new_y < self.y_low_limit:
+    def check_and_fix_y_availability(self, new_y, curr_object):
+        if new_y > self.y_high_limit:
+            curr_object.controller.y = self.y_high_limit
+            return False
+        elif new_y < self.y_low_limit:
+            curr_object.controller.y = self.y_low_limit
             return False
         else:
             return True
 
-    def check_x_availability(self, new_x):
+    def check_and_fix_x_availability(self, new_x, curr_object):
         """Проверка доступности по X"""
-        if new_x > self.x_high_limit or new_x < self.x_low_limit:
+        if new_x > self.x_high_limit:
+            curr_object.controller.x = self.x_high_limit
+            return False
+        elif new_x < self.x_low_limit:
+            curr_object.controller.x = self.x_low_limit
             return False
         else:
             return True
