@@ -124,8 +124,8 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper=None):
 
     frames = []
 
-    for frame_index in tqdm(range(fps * duration), desc='Objects to background: '):
-    # for frame_index in range(fps * duration):
+    # for frame_index in tqdm(range(fps * duration), desc='Objects to background: '):
+    for frame_index in range(fps * duration):
         frame_background = background.copy()
         added_objects = []
         for curr_object in temp_objects:

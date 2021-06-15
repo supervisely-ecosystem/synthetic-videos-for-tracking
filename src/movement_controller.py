@@ -6,7 +6,7 @@ from logger import logger
 import cv2
 
 from functions_objects import get_three_channel_mask, to_transparent_background
-
+from time import time
 
 def area(a, b):  # returns None if rectangles don't intersect
     dx = min(a.xmax, b.xmax) - max(a.xmin, b.xmin)
@@ -14,17 +14,17 @@ def area(a, b):  # returns None if rectangles don't intersect
     if (dx >= 0) and (dy >= 0):
         return dx * dy
 
-
-def calculate_base_coords(added_coords, new_coords, lt=True):
-    if lt:
-        x = min(added_coords[0], new_coords[0])
-        y = min(added_coords[1], new_coords[1])
-
-    else:
-        x = max(added_coords[0], new_coords[0])
-        y = max(added_coords[1], new_coords[1])
-
-    return x, y
+#
+# def calculate_base_coords(added_coords, new_coords, lt=True):
+#     if lt:
+#         x = min(added_coords[0], new_coords[0])
+#         y = min(added_coords[1], new_coords[1])
+#
+#     else:
+#         x = max(added_coords[0], new_coords[0])
+#         y = max(added_coords[1], new_coords[1])
+#
+#     return x, y
 
 
 def compare_overlays_by_rectangles(added_object, curr_object, new_coords):
@@ -101,8 +101,6 @@ class MovementController:
         self.x_low_limit = 0
         self.y_low_limit = 0
 
-        if self.y_high_limit < 0:
-            print()
 
     def generate_new_coords(self, size_of_next_step):
         """
@@ -129,21 +127,33 @@ class MovementController:
                 curr_object.image_backup = image_aug
                 curr_object.mask = mask_aug
 
+                self.calculate_allowable_limits(curr_object.image)
+
         else:
+            stat_time = time()
             rgb_image = cv2.cvtColor(curr_object.image_backup, cv2.COLOR_RGBA2RGB)
+            logger.info('-' * 80)
+            logger.info(f'to rgba: {time() - stat_time}')
+
             image_aug, segment_map_aug = self.minor_transforms(image=rgb_image,
                                                                segmentation_maps=segment_map)
+
+            logger.info(f'trans: {time() - stat_time}')
             mask_aug = segment_map_aug.get_arr()
+            logger.info(f'mask aug: {time() - stat_time}')
             three_channel_mask = get_three_channel_mask(mask_aug)
+            logger.info(f'tchm: {time() - stat_time}')
             bg_mask = numpy.invert(three_channel_mask)
+            logger.info(f'invert: {time() - stat_time}')
 
             rgba_image = cv2.cvtColor(image_aug, cv2.COLOR_RGB2RGBA)
+            logger.info(f'rgba: {time() - stat_time}')
             alpha = rgba_image[:, :, 3]
             alpha[numpy.all(bg_mask, 2)] = 0
-
+            logger.info(f'alpha: {time() - stat_time}')
             curr_object.image = rgba_image
-
-        self.calculate_allowable_limits(curr_object.image)
+            logger.info(f'done: {time() - stat_time}')
+            logger.info('-' * 80)
 
         return 0
 
@@ -153,11 +163,15 @@ class MovementController:
         Если объект не может попасть на следующий шаг — производит перерассчет
         :return: новые координаты объекта
         """
+        stat_time = time()
 
         is_general_transformed = False
 
         if self.minor_transforms:
             self.transform_object(curr_object, general_transform=False)
+
+        logger.info(f'minor_trans: {time() - stat_time}')
+        stat_time = time()
 
         size_of_next_step = self.size_of_next_step
 
@@ -176,21 +190,19 @@ class MovementController:
             x, y = self.generate_new_coords(size_of_next_step * collision_solver)
 
             collision_solver *= 1.01
+        logger.info(f'collision: {time() - stat_time}')
+        stat_time = time()
 
-        outbound_solver = 1
+        # outbound_solver = 1
         while not self.check_bounding_coords_availability((x, y), curr_object):
             if self.general_transforms and not is_general_transformed:
                 self.transform_object(curr_object, general_transform=True)
 
                 is_general_transformed = True
-            if outbound_solver > 10:
-                print()
-
             x, y = curr_object.controller.x, curr_object.controller.y
             # x, y = self.generate_new_coords(size_of_next_step * outbound_solver)
 
-            outbound_solver *= 1.01
-
+        logger.info(f'outbound: {time() - stat_time}')
         self.x, self.y = x, y
         return self.x, self.y
 
