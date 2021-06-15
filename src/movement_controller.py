@@ -1,7 +1,11 @@
 from movement_laws import *
 import numpy
 from collections import namedtuple
+from imgaug.augmentables.segmaps import SegmentationMapsOnImage
 from logger import logger
+import cv2
+
+from functions_objects import get_three_channel_mask, to_transparent_background
 
 
 def area(a, b):  # returns None if rectangles don't intersect
@@ -108,12 +112,35 @@ class MovementController:
         y = self.y + y_div * size_of_next_step * self.down
         return int(x), int(y)
 
-    def general_transform_object(self, image):
-        image = self.general_transforms(image=image)
-        self.calculate_allowable_limits(image)
-        return image
-        # curr_object.image, curr_object.mask = self.transforms(image=curr_object.image_backup,
-        # segmentation_maps=curr_object.mask_backup)
+    def transform_object(self, curr_object, general_transform=False):
+
+        segment_map = SegmentationMapsOnImage(curr_object.mask, shape=curr_object.mask.shape)
+        if general_transform:
+            image_aug, segment_map_aug = self.general_transforms(image=curr_object.image_backup,
+                                                                 segmentation_maps=segment_map)
+            mask_aug = segment_map_aug.get_arr()
+
+            curr_object.image = image_aug
+            curr_object.image_backup = image_aug
+            curr_object.mask = mask_aug
+
+            self.calculate_allowable_limits(image_aug)
+
+        else:
+            rgb_image = cv2.cvtColor(curr_object.image_backup, cv2.COLOR_RGBA2RGB)
+            image_aug, segment_map_aug = self.minor_transforms(image=rgb_image,
+                                                               segmentation_maps=segment_map)
+            mask_aug = segment_map_aug.get_arr()
+            three_channel_mask = get_three_channel_mask(mask_aug)
+            bg_mask = numpy.invert(three_channel_mask)
+
+            rgba_image = cv2.cvtColor(image_aug, cv2.COLOR_RGB2RGBA)
+            alpha = rgba_image[:, :, 3]
+            alpha[numpy.all(bg_mask, 2)] = 0
+
+            curr_object.image = rgba_image
+
+        return 0
 
     def next_step(self, added_objects, curr_object):
         """
@@ -125,7 +152,7 @@ class MovementController:
         is_general_transformed = False
 
         if self.minor_transforms:
-            curr_object.image = self.minor_transforms(image=curr_object.image_backup)
+            self.transform_object(curr_object, general_transform=False)
 
         self.calculate_allowable_limits(curr_object.image)
         size_of_next_step = self.size_of_next_step
@@ -136,10 +163,7 @@ class MovementController:
         while not self.check_overlay_coords_availability((x, y), added_objects, curr_object):
 
             if self.general_transforms and not is_general_transformed:
-                general_transformed = self.general_transform_object(curr_object.image_backup)
-
-                curr_object.image = general_transformed
-                curr_object.image_backup = general_transformed
+                self.transform_object(curr_object, general_transform=True)
 
                 is_general_transformed = True
                 if collision_solver > 10:
@@ -151,12 +175,8 @@ class MovementController:
 
         outbound_solver = 1
         while not self.check_bounding_coords_availability((x, y)):
-
             if self.general_transforms and not is_general_transformed:
-                general_transformed = self.general_transform_object(curr_object.image_backup)
-
-                curr_object.image = general_transformed
-                curr_object.image_backup = general_transformed
+                self.transform_object(curr_object, general_transform=True)
 
                 is_general_transformed = True
                 if outbound_solver > 10:
