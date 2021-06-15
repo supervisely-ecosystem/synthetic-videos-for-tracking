@@ -12,7 +12,7 @@ class AnnotationKeeper:
         self.video_shape = video_shape
 
         if not project_id:
-            self.new_project = api.project.create(WORKSPACE_ID, 'TEST', type=sly.ProjectType.VIDEOS,
+            self.new_project = api.project.create(WORKSPACE_ID, 'TEST_NATIVE_BACK', type=sly.ProjectType.VIDEOS,
                                                   change_name_if_conflict=True)
             self.new_dataset = api.dataset.create(self.new_project.id, f'ds_{self.new_project.id}',
                                                   change_name_if_conflict=True)
@@ -36,7 +36,6 @@ class AnnotationKeeper:
 
         if not project_id:
             api.project.update_meta(self.new_project.id, self.meta.to_json())
-
 
     def add_figures_by_frame(self, coords_data, class_names, frame_index):
         temp_figures = []
@@ -78,19 +77,3 @@ class AnnotationKeeper:
     def get_frames_list(self):
         for index, figure in enumerate(self.figures):
             self.frames_list.append(sly.Frame(index, figure))
-
-
-
-
-###
-
-###
-
-
-
-#
-# for curr_object in temp_objects:
-#     sly.Rectangle(curr_object.controller.x,
-#                   curr_object.controller.y,
-#                   x + curr_object.image.shape[0],
-#                   y + curr_object.image.shape[1])
