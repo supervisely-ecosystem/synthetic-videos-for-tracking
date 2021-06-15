@@ -55,34 +55,35 @@ class Scene:
 project_path = './objects/lemons_annotated'
 # project_path = './objects/small_squares'
 dataset_name = 'ds1'
-for i in range(5, 11):
-    div = 0.02 * i
-    general_transform = iaa.Sequential([
-        iaa.Resize((1 - div, 1 + div)),
-        iaa.Rot90((1, i), keep_size=False),
-    ])
+i = 5
+div = 0.02 * i
 
-    minor_transform = iaa.Sequential([
-        iaa.Affine(rotate=(-4 * i, 4 * i)),
-        # iaa.AddToBrightness((-30, 30),  from_colorspace='RGBA'),
-        iaa.AdditiveGaussianNoise(scale=(0, 2 * i)),
-        # iaa.AddToHueAndSaturation((-60, 60)),  # HUE now isn't working, cause Alpha channel
-        # iaa.ElasticTransformation(alpha=90, sigma=9),
-    ])
+general_transform = iaa.Sequential([
+    iaa.Resize((1 - div, 1 + div)),
+    iaa.Rot90((1, i), keep_size=False),
+])
 
-    custom_scene = Scene(object_general_transforms=None, object_minor_transforms=None)
-    custom_scene.add_background(f'./background_img/{i}.jpg')
+minor_transform = iaa.Sequential([
+    iaa.Affine(rotate=(-4 * i, 4 * i)),
+    # iaa.AddToBrightness((-30, 30),  from_colorspace='RGBA'),
+    iaa.AdditiveGaussianNoise(scale=(0, 2 * i)),
+    # iaa.AddToHueAndSaturation((-60, 60)),  # HUE now isn't working, cause Alpha channel
+    # iaa.ElasticTransformation(alpha=90, sigma=9),
+])
 
-    custom_scene.add_objects(project_path, dataset_name)
-    custom_scene.generate_video(video_path=f'./test{i}_900frames.mp4',
-                                duration=60,
-                                fps=15,
-                                objects_dict={'lemon': 4},
-                                # objects_dict={'square': 4},
-                                movement_laws=[{'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
-                                               {'law': LinearLaw, 'params': ()}],
-                                self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
+custom_scene = Scene(object_general_transforms=None, object_minor_transforms=None)
+custom_scene.add_background(f'./background_img/0.jpg')
 
-                                speed_interval=(1, 8),
-                                project_id=None)
+custom_scene.add_objects(project_path, dataset_name)
+custom_scene.generate_video(video_path=f'./test0_900frames.mp4',
+                            duration=60,
+                            fps=15,
+                            objects_dict={'lemon': 1},
+                            # objects_dict={'square': 4},
+                            movement_laws=[{'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
+                                           {'law': LinearLaw, 'params': ()}],
+                            self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
+
+                            speed_interval=(6, 12),
+                            project_id=None)
 
