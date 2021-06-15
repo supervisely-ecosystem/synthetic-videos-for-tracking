@@ -122,7 +122,7 @@ class MovementController:
             mask_aug = segment_map_aug.get_arr()
 
             if not ((image_aug.shape[0] < 350 or image_aug.shape[1] < 350) or
-                    (image_aug.shape[0] > 1000 or image_aug.shape[1] > 1000)):
+                    (image_aug.shape[0] > 800 or image_aug.shape[1] > 800)):
                 curr_object.image = image_aug
                 curr_object.image_backup = image_aug
                 curr_object.mask = mask_aug
@@ -131,29 +131,27 @@ class MovementController:
 
         else:
             stat_time = time()
-            rgb_image = cv2.cvtColor(curr_object.image_backup, cv2.COLOR_RGBA2RGB)
-            logger.info('-' * 80)
-            logger.info(f'to rgba: {time() - stat_time}')
+            # logger.info('-' * 80)
+            # logger.info(f'to rgba: {time() - stat_time}')
 
-            image_aug, segment_map_aug = self.minor_transforms(image=rgb_image,
+            image_aug, segment_map_aug = self.minor_transforms(image=curr_object.image_backup,
                                                                segmentation_maps=segment_map)
 
-            logger.info(f'trans: {time() - stat_time}')
+            # logger.info(f'trans: {time() - stat_time}')
             mask_aug = segment_map_aug.get_arr()
-            logger.info(f'mask aug: {time() - stat_time}')
-            three_channel_mask = get_three_channel_mask(mask_aug)
-            logger.info(f'tchm: {time() - stat_time}')
-            bg_mask = numpy.invert(three_channel_mask)
-            logger.info(f'invert: {time() - stat_time}')
+            # logger.info(f'mask aug: {time() - stat_time}')
+            # logger.info(f'tchm: {time() - stat_time}')
 
-            rgba_image = cv2.cvtColor(image_aug, cv2.COLOR_RGB2RGBA)
-            logger.info(f'rgba: {time() - stat_time}')
-            alpha = rgba_image[:, :, 3]
-            alpha[numpy.all(bg_mask, 2)] = 0
-            logger.info(f'alpha: {time() - stat_time}')
-            curr_object.image = rgba_image
-            logger.info(f'done: {time() - stat_time}')
-            logger.info('-' * 80)
+            # logger.info(f'invert: {time() - stat_time}')
+
+
+            # logger.info(f'rgba: {time() - stat_time}')
+
+            # logger.info(f'alpha: {time() - stat_time}')
+            curr_object.image = image_aug
+            curr_object.mask = mask_aug
+            # logger.info(f'done: {time() - stat_time}')
+            # logger.info('-' * 80)
 
         return 0
 
@@ -170,7 +168,7 @@ class MovementController:
         if self.minor_transforms:
             self.transform_object(curr_object, general_transform=False)
 
-        logger.info(f'minor_trans: {time() - stat_time}')
+        # logger.info(f'minor_trans: {time() - stat_time}')
         stat_time = time()
 
         size_of_next_step = self.size_of_next_step
@@ -190,7 +188,7 @@ class MovementController:
             x, y = self.generate_new_coords(size_of_next_step * collision_solver)
 
             collision_solver *= 1.01
-        logger.info(f'collision: {time() - stat_time}')
+        # logger.info(f'collision: {time() - stat_time}')
         stat_time = time()
 
         # outbound_solver = 1
@@ -202,7 +200,7 @@ class MovementController:
             x, y = curr_object.controller.x, curr_object.controller.y
             # x, y = self.generate_new_coords(size_of_next_step * outbound_solver)
 
-        logger.info(f'outbound: {time() - stat_time}')
+        # logger.info(f'outbound: {time() - stat_time}')
         self.x, self.y = x, y
         return self.x, self.y
 

@@ -111,9 +111,9 @@ def extract_object_from_image(image_as_arr, label):
     cropped_image = crop_image_as_rectangle(image_as_arr, crop_coords)
     mask_matrix = geometry.data
 
-    cropped_with_alpha = to_transparent_background(mask_matrix, cropped_image)
+    # cropped_with_alpha = to_transparent_background(mask_matrix, cropped_image)
     # cv2.imwrite(f'transparent_{label.obj_class.name}.png', cropped_with_alpha)  # для отладки
-    return cropped_with_alpha, mask_matrix
+    return cropped_image, mask_matrix
 
 
 def get_objects_list_for_project(project_path, dataset_name):
@@ -133,7 +133,7 @@ def get_objects_list_for_project(project_path, dataset_name):
         ann = sly.Annotation.load_json_file(item_paths.ann_path, project.meta)
 
         image_as_arr = cv2.imread(item_paths.img_path)
-        image_as_arr = cv2.cvtColor(image_as_arr, cv2.COLOR_BGR2RGB)
+        # image_as_arr = cv2.cvtColor(image_as_arr, cv2.COLOR_BGR2RGB)
 
         for label in ann.labels:  # по всем объектам на изображении
             # print(f'workin now with {label.obj_class.name}')  #  для отладки

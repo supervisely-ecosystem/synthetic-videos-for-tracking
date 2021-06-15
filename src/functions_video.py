@@ -9,47 +9,78 @@ from movement_controller import MovementController
 from logger import logger
 
 
-def add_object_to_background(background, overlay, x, y):
+def add_object_to_background(background, curr_object):
     """
-    Добавляет объект overlay на фон background
+    Добавляет объект curr_object на фон background
     :param background: фоновое изображение
-    :param overlay: объект, который нужно добавить
-    :param x: координата background x, на которую будет нанесен overlay от левого верхнего угла
-    :param y: координата background y, на которую будет нанесен overlay от левого верхнего угла
+    :param curr_object: объект, который нужно добавить
+
     :return: совмещенное изображение
     """
 
-    background_width = background.shape[1]
-    background_height = background.shape[0]
+    x = curr_object.controller.x
+    y = curr_object.controller.y
 
-    if x >= background_width or y >= background_height:
-        return background
+    fg = curr_object.image
+    fg_mask = curr_object.mask.astype(numpy.uint8)
 
-    h, w = overlay.shape[0], overlay.shape[1]
+    fg_mask = fg_mask * 255
 
-    if x + w > background_width:
-        w = background_width - x
-        overlay = overlay[:, :w]
+    sec_h, sec_w, _ = fg.shape
+    mask_inv = cv2.bitwise_not(fg_mask)
+    img1_bg = cv2.bitwise_and(background[y:y+sec_h, x:x+sec_w, :],
+                              background[y:y+sec_h, x:x+sec_w, :], mask=mask_inv)
 
-    if y + h > background_height:
-        h = background_height - y
-        overlay = overlay[:h]
+    img2_fg = cv2.bitwise_and(fg, fg, mask=fg_mask)
+    dst = cv2.add(img1_bg, img2_fg)
 
-    if overlay.shape[2] < 4:
-        overlay = numpy.concatenate(
-            [
-                overlay,
-                numpy.ones((overlay.shape[0], overlay.shape[1], 1), dtype=overlay.dtype) * 255
-            ],
-            axis=2,
-        )
+    background[y:y+sec_h, x:x+sec_w, :] = dst
 
-    overlay_image = overlay[..., :3]
-    mask = overlay[..., 3:] / 255.0
 
-    background[y:y+h, x:x+w] = (1.0 - mask) * background[y:y+h, x:x+w] + mask * overlay_image
 
-    return background
+
+
+# def add_object_to_background_backup(background, overlay, x, y):
+#     """
+#     Добавляет объект overlay на фон background
+#     :param background: фоновое изображение
+#     :param overlay: объект, который нужно добавить
+#     :param x: координата background x, на которую будет нанесен overlay от левого верхнего угла
+#     :param y: координата background y, на которую будет нанесен overlay от левого верхнего угла
+#     :return: совмещенное изображение
+#     """
+#
+#     background_width = background.shape[1]
+#     background_height = background.shape[0]
+#
+#     if x >= background_width or y >= background_height:
+#         return background
+#
+#     h, w = overlay.shape[0], overlay.shape[1]
+#
+#     if x + w > background_width:
+#         w = background_width - x
+#         overlay = overlay[:, :w]
+#
+#     if y + h > background_height:
+#         h = background_height - y
+#         overlay = overlay[:h]
+#
+#     if overlay.shape[2] < 4:
+#         overlay = numpy.concatenate(
+#             [
+#                 overlay,
+#                 numpy.ones((overlay.shape[0], overlay.shape[1], 1), dtype=overlay.dtype) * 255
+#             ],
+#             axis=2,
+#         )
+#
+#     overlay_image = overlay[..., :3]
+#     mask = overlay[..., 3:] / 255.0
+#
+#     background[y:y+h, x:x+w] = (1.0 - mask) * background[y:y+h, x:x+w] + mask * overlay_image
+#
+#     return background
 
 
 def load_required_objects(objects_dict, objects_list):
@@ -124,19 +155,21 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper=None):
 
     frames = []
 
-    # for frame_index in tqdm(range(fps * duration), desc='Objects to background: '):
-    for frame_index in range(fps * duration):
+    for frame_index in tqdm(range(fps * duration), desc='Objects to background: '):
+    # for frame_index in range(fps * duration):
         frame_background = background.copy()
         added_objects = []
         for curr_object in temp_objects:
             # print(f'before {curr_object.image_backup.shape}')
-            x, y = curr_object.controller.next_step(added_objects, curr_object)
-            frame_background = add_object_to_background(
-                frame_background, curr_object.image, x, y)
+            curr_object.controller.next_step(added_objects, curr_object)
+
+
+            add_object_to_background(
+                frame_background, curr_object)
             added_objects.append(curr_object)
 
-            # cv2.imshow(f'{frame_index}', frame_background)
-            # cv2.waitKey(  )
+            cv2.imshow(f'{frame_index}', frame_background)
+            cv2.waitKey()
             # print(f'after {curr_object.image.shape}')
         frames.append(frame_background)
 

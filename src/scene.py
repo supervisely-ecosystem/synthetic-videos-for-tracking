@@ -75,7 +75,7 @@ for i in range(13, 15):
         # iaa.ElasticTransformation(alpha=90, sigma=9),
     ])
 
-    custom_scene = Scene(object_general_transforms=general_transform, object_minor_transforms=minor_transform)
+    custom_scene = Scene(object_general_transforms=None, object_minor_transforms=None)
     custom_scene.add_background(f'./background_img/0.jpg')
 
     custom_scene.add_objects(project_path, dataset_name)
