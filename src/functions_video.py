@@ -28,6 +28,7 @@ def add_object_to_background(background, curr_object):
 
     sec_h, sec_w, _ = fg.shape
     mask_inv = cv2.bitwise_not(fg_mask)
+    expected_back = background[y:y+sec_h, x:x+sec_w, :]
     img1_bg = cv2.bitwise_and(background[y:y+sec_h, x:x+sec_w, :],
                               background[y:y+sec_h, x:x+sec_w, :], mask=mask_inv)
 
@@ -142,7 +143,7 @@ def keep_annotations_by_frame(temp_objects, frame_index, ann_keeper):
     ann_keeper.add_figures_by_frame(annotations_for_frame, class_names, frame_index)
 
 
-def generate_frames(duration, fps, background, temp_objects, ann_keeper=None):
+def generate_frames(duration, fps, background, temp_objects, ann_keeper=None, frame_transform=None):
     """
     Генерирует кадры видео на основе параметров
     :param duration: длительность в секундах
@@ -150,6 +151,7 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper=None):
     :param background: фоновое изображение
     :param temp_objects: объекты для вставки в кадр
     :param ann_keeper: хранитель аннотаций формата SLY
+    :param frame_transform: transformations for frame
     :return: сгенерированные кадры
     """
 
@@ -163,14 +165,16 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper=None):
             # print(f'before {curr_object.image_backup.shape}')
             curr_object.controller.next_step(added_objects, curr_object)
 
-
             add_object_to_background(
                 frame_background, curr_object)
             added_objects.append(curr_object)
 
-            cv2.imshow(f'{frame_index}', frame_background)
-            cv2.waitKey()
+            # cv2.imshow(f'{frame_index}', frame_background)
+            # cv2.waitKey()
             # print(f'after {curr_object.image.shape}')
+
+        if frame_transform:
+            frame_background = frame_transform(image=frame_background)
         frames.append(frame_background)
 
         if ann_keeper:
