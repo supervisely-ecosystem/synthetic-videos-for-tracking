@@ -16,6 +16,7 @@ class LinearLaw:
 
     def refresh_params(self):
         self.k = numpy.random.uniform(0, 3)
+        self.y_muffler = numpy.random.uniform(1, 10)
         # self.b = numpy.random.uniform(0, 10)
 
     def calculator(self, x):
@@ -39,10 +40,12 @@ class RandomWalkingLaw:
         self.y_muffler = numpy.random.uniform(1, 10)
 
     def refresh_params(self):
-        self.x = sorted(list(set(numpy.random.randint(low=self.x_low_limit, high=self.x_high_limit, size=(30,)))))
-        self.y = (numpy.random.randint(low=self.y_low_limit, high=self.y_high_limit, size=(len(self.x),)))
+        self.x = numpy.linspace(self.x_low_limit, self.x_high_limit, num=60, endpoint=True)
 
-        self.f = interp1d(self.x, self.y, kind='linear', fill_value='extrapolate')
+        self.y = numpy.random.randint(low=self.y_low_limit, high=self.y_high_limit, size=(len(self.x),))
+        self.f = interp1d(self.x, self.y, kind='cubic', fill_value='extrapolate')
+
+        self.y_muffler = numpy.random.uniform(1, 10)
 
     def calculator(self, x):
         return abs(self.f(x) - self.f(x - 1)) / self.y_muffler

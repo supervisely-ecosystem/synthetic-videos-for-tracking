@@ -62,6 +62,17 @@ def compare_overlays_by_rectangles(added_object, curr_object, new_coords):
     return True
 
 
+def find_mask_tight_bbox(raw_mask: numpy.ndarray):
+    rows = list(numpy.any(raw_mask, axis=1).tolist())
+    cols = list(numpy.any(raw_mask, axis=0).tolist())
+    top_margin = rows.index(True)
+    bottom_margin = rows[::-1].index(True)
+    left_margin = cols.index(True)
+    right_margin = cols[::-1].index(True)
+    return top_margin, left_margin, \
+           len(rows) - 1 - bottom_margin, len(cols) - 1 - right_margin
+
+
 class MovementController:
     """
     Класс позволяет контроллировать расположение объекта на сцене
@@ -115,43 +126,47 @@ class MovementController:
 
     def transform_object(self, curr_object, general_transform=False):
 
-        segment_map = SegmentationMapsOnImage(curr_object.mask, shape=curr_object.mask.shape)
+        segment_map = SegmentationMapsOnImage(curr_object.mask_backup, shape=curr_object.mask_backup.shape)
         if general_transform:
             image_aug, segment_map_aug = self.general_transforms(image=curr_object.image_backup,
                                                                  segmentation_maps=segment_map)
             mask_aug = segment_map_aug.get_arr()
 
-            if not ((image_aug.shape[0] < 350 or image_aug.shape[1] < 350) or
-                    (image_aug.shape[0] > 800 or image_aug.shape[1] > 800)):
+            if not ((image_aug.shape[0] < 230 or image_aug.shape[1] < 230) or
+                    (image_aug.shape[0] > 650 or image_aug.shape[1] > 650)):
+
+                t, l, b, r = find_mask_tight_bbox(mask_aug)
+
+                image_aug = image_aug[t:b, l:r]
+                mask_aug = mask_aug[t:b, l:r]
+
                 curr_object.image = image_aug
                 curr_object.image_backup = image_aug
                 curr_object.mask = mask_aug
+                curr_object.mask_backup = mask_aug
 
-                self.calculate_allowable_limits(curr_object.image)
+                # self.calculate_allowable_limits(curr_object.image)
 
         else:
             stat_time = time()
-            # logger.info('-' * 80)
-            # logger.info(f'to rgba: {time() - stat_time}')
 
             image_aug, segment_map_aug = self.minor_transforms(image=curr_object.image_backup,
                                                                segmentation_maps=segment_map)
 
-            # logger.info(f'trans: {time() - stat_time}')
             mask_aug = segment_map_aug.get_arr()
-            # logger.info(f'mask aug: {time() - stat_time}')
-            # logger.info(f'tchm: {time() - stat_time}')
 
-            # logger.info(f'invert: {time() - stat_time}')
+            if not ((image_aug.shape[0] < 230 or image_aug.shape[1] < 230) or
+                    (image_aug.shape[0] > 700 or image_aug.shape[1] > 700)):
 
+                t, l, b, r = find_mask_tight_bbox(mask_aug)
 
-            # logger.info(f'rgba: {time() - stat_time}')
+                image_aug = image_aug[t:b, l:r]
+                mask_aug = mask_aug[t:b, l:r]
 
-            # logger.info(f'alpha: {time() - stat_time}')
-            curr_object.image = image_aug
-            curr_object.mask = mask_aug
-            # logger.info(f'done: {time() - stat_time}')
-            # logger.info('-' * 80)
+                curr_object.image = image_aug
+                curr_object.mask = mask_aug
+
+        self.calculate_allowable_limits(curr_object.image)
 
         return 0
 
@@ -182,8 +197,6 @@ class MovementController:
                 self.transform_object(curr_object, general_transform=True)
 
                 is_general_transformed = True
-            if collision_solver > 1:
-                print()
 
             x, y = self.generate_new_coords(size_of_next_step * collision_solver)
 
@@ -214,7 +227,9 @@ class MovementController:
 
                 added_object.controller.right = self.right * -1
                 added_object.controller.down = self.down * -1
-                # added_object.controller.movement_law.refresh_params()
+
+                self.size_of_next_step = int(numpy.random.randint(self.speed_interval[0], self.speed_interval[1]))
+                added_object.controller.movement_law.refresh_params()
                 # added_object.controller.generate_new_coords(added_object.controller.size_of_next_step)
 
                 return False

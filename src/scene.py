@@ -14,13 +14,14 @@ import numpy
 
 class Scene:
     def __init__(self, width=1920, height=1080, object_general_transforms=None,
-                 object_minor_transforms=None):
+                 object_minor_transforms=None, frame_transform=None):
         self.width = width
         self.height = height
         self.backgrounds = []
         self.objects = []
         self.object_general_transforms = object_general_transforms
         self.object_minor_transforms = object_minor_transforms
+        self.frame_transform = frame_transform
 
     def add_background(self, background_path):
         self.backgrounds.append(get_cv2_background_by_path(background_path))
@@ -46,49 +47,64 @@ class Scene:
                                       current_objects=temp_objects,
                                       project_id=project_id)
 
-        frames = generate_frames(fps, duration, self.backgrounds[0], temp_objects, ann_keeper)
+        frames = generate_frames(fps, duration, self.backgrounds[0], temp_objects, ann_keeper, self.frame_transform)
         video_shape = (self.backgrounds[0].shape[1], self.backgrounds[0].shape[0])
         write_frames_to_file(video_path, fps, frames, video_shape)
         ann_keeper.upload_annotation(video_path)
 
 
-project_path = './objects/big_lemons_annotated'
+project_path = './objects/lemons_annotated'
 # project_path = './objects/small_squares'
 dataset_name = 'ds1'
 
-for i in range(13, 15):
+for i in range(1, 11):
 
 # i = 5
     div = 0.02 * i
 
     general_transform = iaa.Sequential([
-        iaa.Resize((0.7, 2)),
-        iaa.Rot90((1, i), keep_size=False),
+        iaa.Resize((1 - div * 1.2, 1 + div * 1.2)),
+        iaa.Rot90((1, 4), keep_size=False),
+        iaa.Rotate(rotate=(-5 - i * 5, 5 + i * 5), fit_output=True)
     ])
 
     minor_transform = iaa.Sequential([
-        iaa.Affine(rotate=(-4 * i, 4 * i)),
-        iaa.AddToHueAndSaturation((-10, 10)),
-        iaa.AddToBrightness((-60, 60)),
-        iaa.AdditiveGaussianNoise(scale=(0, 2 * i)),
-        iaa.MotionBlur(k=(10, 30))
+        # iaa.Affine(rotate=(-5 - i, 5 + i)),
+        iaa.Resize((1 - div * 1.2, 1 + div * 1.2)),
+        iaa.Rotate(rotate=(-45 - i * 5, 45 + i * 5), fit_output=True),
+        iaa.AddToHueAndSaturation((int(-10 - i * 1.3), int(10 + i * 1.3))),
+        iaa.AddToBrightness((-2 - i * 2, 2 + i * 2)),
+        iaa.AdditiveGaussianNoise(scale=(0, 10 + i * 1.5)),
+        iaa.MotionBlur(k=(10, int(20 + i * 1.5)))
         # iaa.ElasticTransformation(alpha=90, sigma=9),
     ])
 
-    custom_scene = Scene(object_general_transforms=None, object_minor_transforms=None)
-    custom_scene.add_background(f'./background_img/0.jpg')
+    frame_transform = iaa.Sometimes(0.3, iaa.Sequential([
+        iaa.AddToHueAndSaturation((int(-10 - i * 1.3), int(10 + i * 1.3))),
+        iaa.AddToBrightness((-2 - i * 2, 2 + i * 2)),
+        iaa.AdditiveGaussianNoise(scale=(0, 10 + i * 2)),
+        iaa.MotionBlur(k=(10, int(20 + i * 1.5)))
+        # iaa.ElasticTransformation(alpha=90, sigma=9),
+    ]))
+
+    custom_scene = Scene(object_general_transforms=general_transform, object_minor_transforms=minor_transform,
+                         frame_transform=frame_transform)
+    custom_scene.add_background(f'./background_img/{i}.jpg')
 
     custom_scene.add_objects(project_path, dataset_name)
-    custom_scene.generate_video(video_path=f'./test{i}_900frames.mp4',
-                                duration=60,
-                                fps=15,
-                                objects_dict={'lemon': 1},
+
+    fps = 5 + i * 5
+    custom_scene.generate_video(video_path=f'./test{i}_{fps}fps.mp4',
+                                duration=int(900 / fps),
+                                fps=fps,
+                                # objects_dict={'lemon': numpy.random.randint(2, 6)},
+                                objects_dict={'lemon': 1, 'kiwi': 1},
                                 # objects_dict={'square': 4},
                                 movement_laws=[{'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
                                                {'law': LinearLaw, 'params': ()}],
 
                                 self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
-                                speed_interval=(15, 40),
-                                project_id=4890
+                                speed_interval=(5, 32),
+                                project_id=4922
     )
 
