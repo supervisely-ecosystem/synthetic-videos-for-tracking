@@ -1,0 +1,22 @@
+{
+    "classes": [
+        {
+            "title": "kiwi",
+            "shape": "bitmap",
+            "color": "#FF0000",
+            "geometry_config": {},
+            "id": 41070,
+            "hotkey": ""
+        },
+        {
+            "title": "lemon",
+            "shape": "bitmap",
+            "color": "#51C6AA",
+            "geometry_config": {},
+            "id": 41069,
+            "hotkey": ""
+        }
+    ],
+    "tags": [],
+    "projectType": "images"
+}

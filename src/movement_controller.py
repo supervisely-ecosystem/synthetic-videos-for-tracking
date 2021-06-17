@@ -1,8 +1,12 @@
 from movement_laws import *
 import numpy
 from collections import namedtuple
+from imgaug.augmentables.segmaps import SegmentationMapsOnImage
 from logger import logger
+import cv2
 
+from functions_objects import get_three_channel_mask, to_transparent_background
+from time import time
 
 def area(a, b):  # returns None if rectangles don't intersect
     dx = min(a.xmax, b.xmax) - max(a.xmin, b.xmin)
@@ -10,17 +14,17 @@ def area(a, b):  # returns None if rectangles don't intersect
     if (dx >= 0) and (dy >= 0):
         return dx * dy
 
-
-def calculate_base_coords(added_coords, new_coords, lt=True):
-    if lt:
-        x = min(added_coords[0], new_coords[0])
-        y = min(added_coords[1], new_coords[1])
-
-    else:
-        x = max(added_coords[0], new_coords[0])
-        y = max(added_coords[1], new_coords[1])
-
-    return x, y
+#
+# def calculate_base_coords(added_coords, new_coords, lt=True):
+#     if lt:
+#         x = min(added_coords[0], new_coords[0])
+#         y = min(added_coords[1], new_coords[1])
+#
+#     else:
+#         x = max(added_coords[0], new_coords[0])
+#         y = max(added_coords[1], new_coords[1])
+#
+#     return x, y
 
 
 def compare_overlays_by_rectangles(added_object, curr_object, new_coords):
@@ -56,6 +60,17 @@ def compare_overlays_by_rectangles(added_object, curr_object, new_coords):
 
             return False
     return True
+
+
+def find_mask_tight_bbox(raw_mask: numpy.ndarray):
+    rows = list(numpy.any(raw_mask, axis=1).tolist())
+    cols = list(numpy.any(raw_mask, axis=0).tolist())
+    top_margin = rows.index(True)
+    bottom_margin = rows[::-1].index(True)
+    left_margin = cols.index(True)
+    right_margin = cols[::-1].index(True)
+    return top_margin, left_margin, \
+           len(rows) - 1 - bottom_margin, len(cols) - 1 - right_margin
 
 
 class MovementController:
@@ -97,6 +112,7 @@ class MovementController:
         self.x_low_limit = 0
         self.y_low_limit = 0
 
+
     def generate_new_coords(self, size_of_next_step):
         """
         Генерирует следующий шаг координат
@@ -108,12 +124,51 @@ class MovementController:
         y = self.y + y_div * size_of_next_step * self.down
         return int(x), int(y)
 
-    def general_transform_object(self, image):
-        image = self.general_transforms(image=image)
-        self.calculate_allowable_limits(image)
-        return image
-        # curr_object.image, curr_object.mask = self.transforms(image=curr_object.image_backup,
-        # segmentation_maps=curr_object.mask_backup)
+    def transform_object(self, curr_object, general_transform=False):
+
+        segment_map = SegmentationMapsOnImage(curr_object.mask_backup, shape=curr_object.mask_backup.shape)
+        if general_transform:
+            image_aug, segment_map_aug = self.general_transforms(image=curr_object.image_backup,
+                                                                 segmentation_maps=segment_map)
+            mask_aug = segment_map_aug.get_arr()
+
+            if not ((image_aug.shape[0] < 230 or image_aug.shape[1] < 230) or
+                    (image_aug.shape[0] > 650 or image_aug.shape[1] > 650)):
+
+                t, l, b, r = find_mask_tight_bbox(mask_aug)
+
+                image_aug = image_aug[t:b, l:r]
+                mask_aug = mask_aug[t:b, l:r]
+
+                curr_object.image = image_aug
+                curr_object.image_backup = image_aug
+                curr_object.mask = mask_aug
+                curr_object.mask_backup = mask_aug
+
+                # self.calculate_allowable_limits(curr_object.image)
+
+        else:
+            stat_time = time()
+
+            image_aug, segment_map_aug = self.minor_transforms(image=curr_object.image_backup,
+                                                               segmentation_maps=segment_map)
+
+            mask_aug = segment_map_aug.get_arr()
+
+            if not ((image_aug.shape[0] < 230 or image_aug.shape[1] < 230) or
+                    (image_aug.shape[0] > 700 or image_aug.shape[1] > 700)):
+
+                t, l, b, r = find_mask_tight_bbox(mask_aug)
+
+                image_aug = image_aug[t:b, l:r]
+                mask_aug = mask_aug[t:b, l:r]
+
+                curr_object.image = image_aug
+                curr_object.mask = mask_aug
+
+        self.calculate_allowable_limits(curr_object.image)
+
+        return 0
 
     def next_step(self, added_objects, curr_object):
         """
@@ -121,13 +176,16 @@ class MovementController:
         Если объект не может попасть на следующий шаг — производит перерассчет
         :return: новые координаты объекта
         """
+        stat_time = time()
 
         is_general_transformed = False
 
         if self.minor_transforms:
-            curr_object.image = self.minor_transforms(image=curr_object.image_backup)
+            self.transform_object(curr_object, general_transform=False)
 
-        self.calculate_allowable_limits(curr_object.image)
+        # logger.info(f'minor_trans: {time() - stat_time}')
+        stat_time = time()
+
         size_of_next_step = self.size_of_next_step
 
         x, y = self.generate_new_coords(size_of_next_step)
@@ -136,36 +194,26 @@ class MovementController:
         while not self.check_overlay_coords_availability((x, y), added_objects, curr_object):
 
             if self.general_transforms and not is_general_transformed:
-                general_transformed = self.general_transform_object(curr_object.image_backup)
-
-                curr_object.image = general_transformed
-                curr_object.image_backup = general_transformed
+                self.transform_object(curr_object, general_transform=True)
 
                 is_general_transformed = True
-                if collision_solver > 10:
-                    print()
 
             x, y = self.generate_new_coords(size_of_next_step * collision_solver)
 
-            collision_solver += 0.1
+            collision_solver *= 1.01
+        # logger.info(f'collision: {time() - stat_time}')
+        stat_time = time()
 
-        outbound_solver = 1
-        while not self.check_bounding_coords_availability((x, y)):
-
+        # outbound_solver = 1
+        while not self.check_bounding_coords_availability((x, y), curr_object):
             if self.general_transforms and not is_general_transformed:
-                general_transformed = self.general_transform_object(curr_object.image_backup)
-
-                curr_object.image = general_transformed
-                curr_object.image_backup = general_transformed
+                self.transform_object(curr_object, general_transform=True)
 
                 is_general_transformed = True
-                if outbound_solver > 10:
-                    print()
+            x, y = curr_object.controller.x, curr_object.controller.y
+            # x, y = self.generate_new_coords(size_of_next_step * outbound_solver)
 
-            x, y = self.generate_new_coords(size_of_next_step * outbound_solver)
-
-            outbound_solver += 0.1
-
+        # logger.info(f'outbound: {time() - stat_time}')
         self.x, self.y = x, y
         return self.x, self.y
 
@@ -179,19 +227,21 @@ class MovementController:
 
                 added_object.controller.right = self.right * -1
                 added_object.controller.down = self.down * -1
-                # added_object.controller.movement_law.refresh_params()
+
+                self.size_of_next_step = int(numpy.random.randint(self.speed_interval[0], self.speed_interval[1]))
+                added_object.controller.movement_law.refresh_params()
                 # added_object.controller.generate_new_coords(added_object.controller.size_of_next_step)
 
                 return False
         return True
 
-    def check_bounding_coords_availability(self, new_coords):
+    def check_bounding_coords_availability(self, new_coords, curr_object):
         changed = False
-        if not self.check_x_availability(new_coords[0]):
+        if not self.check_and_fix_x_availability(new_coords[0], curr_object):
             self.change_x_direction()
             changed = True
 
-        if not self.check_y_availability(new_coords[1]):
+        if not self.check_and_fix_y_availability(new_coords[1], curr_object):
             self.change_y_direction()
             changed = True
 
@@ -199,15 +249,23 @@ class MovementController:
             return False
         return True
 
-    def check_y_availability(self, new_y):
-        if new_y > self.y_high_limit or new_y < self.y_low_limit:
+    def check_and_fix_y_availability(self, new_y, curr_object):
+        if new_y > self.y_high_limit:
+            curr_object.controller.y = self.y_high_limit
+            return False
+        elif new_y < self.y_low_limit:
+            curr_object.controller.y = self.y_low_limit
             return False
         else:
             return True
 
-    def check_x_availability(self, new_x):
+    def check_and_fix_x_availability(self, new_x, curr_object):
         """Проверка доступности по X"""
-        if new_x > self.x_high_limit or new_x < self.x_low_limit:
+        if new_x > self.x_high_limit:
+            curr_object.controller.x = self.x_high_limit
+            return False
+        elif new_x < self.x_low_limit:
+            curr_object.controller.x = self.x_low_limit
             return False
         else:
             return True
