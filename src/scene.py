@@ -10,7 +10,6 @@ import imgaug.augmenters as iaa
 
 import numpy
 
-# test commite
 
 class Scene:
     def __init__(self, width=1920, height=1080, object_general_transforms=None,
@@ -39,7 +38,7 @@ class Scene:
                        speed_interval, project_id):
         temp_objects = load_required_objects(objects_dict, self.objects)
         initialize_controllers(temp_objects, movement_laws, speed_interval,
-                                                               self_overlay, self.backgrounds[0].shape,
+                               self_overlay, self.backgrounds[0].shape,
                                general_transforms=self.object_general_transforms,
                                minor_transforms=self.object_minor_transforms)
 
@@ -103,11 +102,11 @@ if __name__ == "__main__":
                                     objects_dict={'lemon': numpy.random.randint(2, 6)},
                                     # objects_dict={'lemon': 2, 'kiwi': 1},
                                     # objects_dict={'square': 4},
-                                    movement_laws=[{'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
-                                                   {'law': LinearLaw, 'params': ()}],
+                                    movement_laws=[
+                                        {'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
+                                        {'law': LinearLaw, 'params': ()}],
 
                                     self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
                                     speed_interval=(5, 32 + i),
                                     project_id=4964
-        )
-
+                                    )
