@@ -12,7 +12,7 @@ class AnnotationKeeper:
         self.video_shape = video_shape
 
         if not project_id:
-            self.new_project = api.project.create(WORKSPACE_ID, 'TEST_NATIVE_BACK', type=sly.ProjectType.VIDEOS,
+            self.new_project = api.project.create(WORKSPACE_ID, 'OBJECTS_TEST', type=sly.ProjectType.VIDEOS,
                                                   change_name_if_conflict=True)
             self.new_dataset = api.dataset.create(self.new_project.id, f'ds_{self.new_project.id}',
                                                   change_name_if_conflict=True)
@@ -32,17 +32,17 @@ class AnnotationKeeper:
         self.frames_list = []
         self.frames_collection = []
 
-        self.meta = sly.ProjectMeta(obj_classes=sly.ObjClassCollection(self.sly_objects_list))
+        self.meta = sly.ProjectMeta(obj_classes=sly.ObjClassCollection(self.get_unique_objects(self.sly_objects_list)))
 
         if not project_id:
             api.project.update_meta(self.new_project.id, self.meta.to_json())
 
     def add_figures_by_frame(self, coords_data, class_names, frame_index):
         temp_figures = []
-        object_labels = [temp_object.name for temp_object in self.sly_objects_list]
+        # object_labels = [temp_object.name for temp_object in self.sly_objects_list]
         for index, current_coord in enumerate(coords_data):
-            object_index = object_labels.index(class_names[index])
-            temp_figures.append(sly.VideoFigure(self.video_object_list[object_index], current_coord, frame_index))
+            # object_index = object_labels.index(class_names[index])
+            temp_figures.append(sly.VideoFigure(self.video_object_list[index], current_coord, frame_index))
 
         self.figures.append(temp_figures)
 
@@ -63,12 +63,21 @@ class AnnotationKeeper:
 
         logger.info(f'{video_name} uploaded!')
 
+    def get_unique_objects(self, obj_list):
+        unique_objects = []
+        for obj in obj_list:
+            # @TODO: to add different types shapes
+            if obj.name not in [temp_object.name for temp_object in unique_objects]:
+                unique_objects.append(obj)
+
+        return unique_objects
+
 
     def get_sly_objects(self, current_objects):
         for obj in current_objects:
             # @TODO: to add different types shapes
-            if obj.class_name not in [temp_object.name for temp_object in self.sly_objects_list]:
-                self.sly_objects_list.append(sly.ObjClass(obj.class_name, sly.Rectangle))
+            # if obj.class_name not in [temp_object.name for temp_object in self.sly_objects_list]:
+            self.sly_objects_list.append(sly.ObjClass(obj.class_name, sly.Rectangle))
 
     def get_video_objects_list(self):
         for sly_object in self.sly_objects_list:
