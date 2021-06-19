@@ -133,17 +133,17 @@ def initialize_controllers(temp_objects, movement_laws, speed_interval, self_ove
 
 def keep_annotations_by_frame(temp_objects, frame_index, ann_keeper):
     annotations_for_frame = []
-    class_names = []
+
     for curr_object in temp_objects:
         x, y = curr_object.controller.x, curr_object.controller.y
         curr_object_coords = sly.Rectangle(y, x, y + curr_object.image.shape[0] - 1,
                                            x + curr_object.image.shape[1] - 1)
         annotations_for_frame.append(curr_object_coords)
-        class_names.append(curr_object.class_name)
-    ann_keeper.add_figures_by_frame(annotations_for_frame, class_names, frame_index)
+
+    ann_keeper.add_figures_by_frame(annotations_for_frame, frame_index)
 
 
-def generate_frames(duration, fps, background, temp_objects, ann_keeper=None, frame_transform=None):
+def generate_frames(duration, fps, background, temp_objects, ann_keeper=None, frame_transform=None, sly_progress=None):
     """
     Генерирует кадры видео на основе параметров
     :param duration: длительность в секундах
@@ -152,10 +152,14 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper=None, fr
     :param temp_objects: объекты для вставки в кадр
     :param ann_keeper: хранитель аннотаций формата SLY
     :param frame_transform: transformations for frame
+    :param sly_progress: progress bar
     :return: сгенерированные кадры
     """
 
     frames = []
+
+    if sly_progress:
+        sly_progress.refresh_params('Objects to background', int(fps * duration))
 
     for frame_index in tqdm(range(fps * duration), desc='Objects to background: '):
     # for frame_index in range(fps * duration):
@@ -180,13 +184,13 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper=None, fr
         if ann_keeper:
             keep_annotations_by_frame(added_objects, frame_index, ann_keeper)
 
-        # cv2.imshow(f'frame {len(frames)}', frame_background)
-        # cv2.waitKey()
+        if sly_progress:
+            sly_progress.next_step()
 
     return frames
 
 
-def write_frames_to_file(video_name, fps, frames, video_shape):
+def write_frames_to_file(video_name, fps, frames, video_shape, sly_progress=None):
     """
     Записывает кадры в единный видеофайл
     :param video_name: название видео
@@ -198,8 +202,14 @@ def write_frames_to_file(video_name, fps, frames, video_shape):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     video = cv2.VideoWriter(video_name, fourcc, fps, video_shape)
 
+    if sly_progress:
+        sly_progress.refresh_params('Generating video file', len(frames))
+
     for frame in tqdm(frames, desc='Generating video file: '):
         video.write(frame)
+
+        if sly_progress:
+            sly_progress.next_step()
 
     video.release()
 
