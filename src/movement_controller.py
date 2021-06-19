@@ -5,7 +5,7 @@ from imgaug.augmentables.segmaps import SegmentationMapsOnImage
 from logger import logger
 import cv2
 
-from functions_objects import get_three_channel_mask, to_transparent_background
+
 from time import time
 
 def area(a, b):  # returns None if rectangles don't intersect
@@ -70,7 +70,7 @@ def find_mask_tight_bbox(raw_mask: numpy.ndarray):
     left_margin = cols.index(True)
     right_margin = cols[::-1].index(True)
     return top_margin, left_margin, \
-           len(rows) - 1 - bottom_margin, len(cols) - 1 - right_margin
+           len(rows) - bottom_margin, len(cols) - right_margin
 
 
 class MovementController:
@@ -126,13 +126,13 @@ class MovementController:
 
     def transform_object(self, curr_object, general_transform=False):
 
-        segment_map = SegmentationMapsOnImage(curr_object.mask_backup, shape=curr_object.mask_backup.shape)
+        segment_map = SegmentationMapsOnImage(curr_object.mask_backup.copy(), shape=curr_object.mask_backup.shape)
         if general_transform:
-            image_aug, segment_map_aug = self.general_transforms(image=curr_object.image_backup,
+            image_aug, segment_map_aug = self.general_transforms(image=curr_object.image_backup.copy(),
                                                                  segmentation_maps=segment_map)
             mask_aug = segment_map_aug.get_arr()
 
-            if not ((image_aug.shape[0] < 230 or image_aug.shape[1] < 230) or
+            if not ((image_aug.shape[0] < 130 or image_aug.shape[1] < 130) or
                     (image_aug.shape[0] > 650 or image_aug.shape[1] > 650)):
 
                 t, l, b, r = find_mask_tight_bbox(mask_aug)
@@ -150,12 +150,12 @@ class MovementController:
         else:
             stat_time = time()
 
-            image_aug, segment_map_aug = self.minor_transforms(image=curr_object.image_backup,
+            image_aug, segment_map_aug = self.minor_transforms(image=curr_object.image_backup.copy(),
                                                                segmentation_maps=segment_map)
 
             mask_aug = segment_map_aug.get_arr()
 
-            if not ((image_aug.shape[0] < 230 or image_aug.shape[1] < 230) or
+            if not ((image_aug.shape[0] < 130 or image_aug.shape[1] < 130) or
                     (image_aug.shape[0] > 700 or image_aug.shape[1] > 700)):
 
                 t, l, b, r = find_mask_tight_bbox(mask_aug)
