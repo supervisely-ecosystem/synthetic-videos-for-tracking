@@ -22,20 +22,26 @@ class Scene:
         self.object_minor_transforms = object_minor_transforms
         self.frame_transform = frame_transform
 
+        self.ann_keeper = None
+
     def add_background(self, background_path):
         self.backgrounds.append(get_cv2_background_by_path(background_path))
         logger.info('background successfully added')
 
-    def add_objects(self, project_path, dataset_name):
-        extracted_objects = get_objects_list_for_project(project_path, dataset_name)
-        self.objects.extend(extracted_objects)
+    def add_objects(self, project_path, dataset_names):
+        for dataset_name in dataset_names:
+            extracted_objects = get_objects_list_for_project(project_path, dataset_name)
+            self.objects.extend(extracted_objects)
 
-        logger.info(f'[{len(extracted_objects)}] objects from {project_path}/{dataset_name} successfully added')
+            logger.info(f'[{len(extracted_objects)}] objects from {project_path}/{dataset_name} successfully added')
         logger.info(f'available objects:\n'
                     f'{get_available_objects(self.objects)}\n')
 
     def generate_video(self, video_path, fps, duration, objects_dict, movement_laws, self_overlay,
-                       speed_interval, project_id):
+                       speed_interval,
+                       project_id=None, project_name='SLYvSynth',
+                       upload_ann=False, sly_progress=None):
+
         temp_objects = load_required_objects(objects_dict, self.objects)
         initialize_controllers(temp_objects, movement_laws, speed_interval,
                                self_overlay, self.backgrounds[0].shape,
@@ -43,21 +49,27 @@ class Scene:
                                minor_transforms=self.object_minor_transforms)
 
         ann_keeper = AnnotationKeeper(video_shape=self.backgrounds[0].shape,
-                                      current_objects=temp_objects,
-                                      project_id=project_id)
+                                      current_objects=temp_objects)
 
-        frames = generate_frames(fps, duration, self.backgrounds[0], temp_objects, ann_keeper, self.frame_transform)
+        frames = generate_frames(fps, duration, self.backgrounds[0], temp_objects, ann_keeper, self.frame_transform,
+                                 sly_progress)
+
         video_shape = (self.backgrounds[0].shape[1], self.backgrounds[0].shape[0])
-        write_frames_to_file(video_path, fps, frames, video_shape)
-        ann_keeper.upload_annotation(video_path)
+        write_frames_to_file(video_path, fps, frames, video_shape, sly_progress)
+
+        if upload_ann:
+            ann_keeper.init_project_remotely(project_id=project_id, project_name=project_name)
+            ann_keeper.upload_annotation(video_path)
+
+        self.ann_keeper = ann_keeper
 
 
 if __name__ == "__main__":
-    project_path = './objects/my_lemons'
+    project_path = './objects/lemons_annotated'
     # project_path = './objects/small_squares'
-    dataset_name = 'ds1'
+    dataset_names = ['ds1']
 
-    for i in range(8, 11):
+    for i in range(1, 11):
 
         div = 0.02 * i
 
@@ -89,18 +101,18 @@ if __name__ == "__main__":
             # iaa.ElasticTransformation(alpha=90, sigma=9),
         ]))
 
-        custom_scene = Scene(object_general_transforms=general_transform, object_minor_transforms=minor_transform,
+        custom_scene = Scene(object_general_transforms=None, object_minor_transforms=minor_transform,
                              frame_transform=frame_transform)
         custom_scene.add_background(f'./background_img/{i}.jpg')
 
-        custom_scene.add_objects(project_path, dataset_name)
+        custom_scene.add_objects(project_path, dataset_names)
 
         fps = 5 + i * 5
         custom_scene.generate_video(video_path=f'./test{i}_{fps}fps.mp4',
-                                    # duration=int(900 / fps),
-                                    duration=10,
+                                    duration=int(900 / fps),
+                                    # duration=10,
                                     fps=fps,
-                                    objects_dict={'lemon': numpy.random.randint(1, 3)},
+                                    objects_dict={'lemon': numpy.random.randint(2, 6)},
                                     # objects_dict={'lemon': 2, 'kiwi': 1},
                                     # objects_dict={'square': 4},
                                     movement_laws=[

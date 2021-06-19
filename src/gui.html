@@ -12,11 +12,11 @@
 
 
             <sly-select-team-workspace
-                    :team-id.sync="state.teamId"
-                    :workspace-id.sync="state.workspaceId">
+                    :team-id.sync="state.bgTeamId"
+                    :workspace-id.sync="state.bgWorkspaceId">
             </sly-select-team-workspace>
             <sly-select-project
-                    :workspace-id="state.workspaceId"
+                    :workspace-id="state.bgWorkspaceId"
                     :project-id.sync="state.bgProjectId">
             </sly-select-project>
             <el-checkbox class="mt15" v-model="state.allDatasets">All datasets</el-checkbox>
@@ -81,7 +81,7 @@
 
         </sly-card>
         <sly-card title="Preview"
-                  subtitle="Visualize sliding windows on random image as video"
+                  subtitle="Visualize vSynth result (5 sec duration)"
                   style="width: 100%">
             <div slot="header">
                 <el-button
@@ -117,8 +117,8 @@
         <sly-field title="Result project name">
             <el-input v-model="state.resProjectName"></el-input>
             <el-button class="mt10" type="primary" :loading="data.started" :disabled="data.resProjectId"
-                       @click="data.started = true; command('split')">
-                Split
+                       @click="data.started = true; command('synthesize')">
+                Synthesize
             </el-button>
         </sly-field>
 
@@ -126,7 +126,7 @@
             <sly-field class="mt15"
                        v-if="data.resProjectId && !data.started"
                        title="New project has been created"
-                       description="Split configuration is saved in project info (metadata) as json">
+                       description="Synthesize configuration is saved in project info (metadata) as json">
                 <sly-field title="" description="Project">
                     <a slot="title" target="_blank"
                        :href="`/projects/${data.resProjectId}/datasets`">{{ data.resProjectName }}</a>
@@ -135,10 +135,10 @@
             </sly-field>
         </div>
         <div class="fflex mt10" v-if="data.started === true">
-            <div class="mr10" style="width: 120px;">Split images:</div>
-            <el-progress class="mt10" v-if="data.started === true" :percentage="data.progress"
+            <div class="mr10" style="width: 120px;">{{ data.progressSynthMessage }}:</div>
+            <el-progress class="mt10" v-if="data.started === true" :percentage="data.progressSynth"
                          style="flex: 1"></el-progress>
-            <div class="ml10" style="flex: none;">[{{ data.progressCurrent }} / {{ data.progressTotal }}]
+            <div class="ml10" style="flex: none;">[{{ data.progressSynthCurrent }} / {{ data.progressSynthTotal }}]
             </div>
         </div>
     </sly-card>

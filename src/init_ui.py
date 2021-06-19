@@ -10,8 +10,15 @@ def init_input_project(api: sly.Api, data: dict, project_info):
 
 
 def init_settings(state):
-    state["linearLaw"] = 'true'
-    state["randomLaw"] = 'false'
+
+    state["bgTeamId"] = None
+    state["bgWorkspaceId"] = None
+    state["bgProjectId"] = None
+    state["bgDatasets"] = None
+    state["allDatasets"] = True
+
+    state["linearLaw"] = True
+    state["randomLaw"] = True
     state["fps"] = 25
 
     state["speedInterval"] = [5, 20]
@@ -19,7 +26,7 @@ def init_settings(state):
 
 def init_res_project(data, state, project_info):
     data["resProjectId"] = None
-    state["resProjectName"] = f"{project_info.name}-sw-split"
+    state["resProjectName"] = f"synthesized_{project_info.name}_{state['fps']}fps"
     data["resProjectName"] = None
     data["resProjectPreviewUrl"] = None
     data["started"] = False
