@@ -49,7 +49,7 @@ def get_crop_coords(geometry):
     x = geometry.origin.row
     y = geometry.origin.col
 
-    return sly.Rectangle(x, y, x + len(geometry.data) - 1, y + len(geometry.data[0]) - 1)
+    return sly.Rectangle(x, y, x + geometry.data.shape[0] - 1, y + geometry.data.shape[1] - 1)
 
 
 def crop_image_as_rectangle(src_image, crop_coords):
@@ -60,42 +60,6 @@ def crop_image_as_rectangle(src_image, crop_coords):
     :return: вырезанная область
     """
     return sly.imaging.image.crop(src_image, crop_coords)
-
-
-def get_three_channel_mask(mask):
-    """
-    Трансформирует маску из однокаланьной в трехканальную
-    используется для удаления фона
-    :param mask: одноканальная маска
-    :return: трехканальная маска
-    """
-    three_channel_mask = []
-
-    for row in mask:
-        temp_row = []
-        for curr_value in row:
-            temp_row.append([curr_value, curr_value, curr_value])
-
-        three_channel_mask.append(temp_row)
-
-    return numpy.asarray(three_channel_mask)
-
-
-def to_transparent_background(mask, cropped_image):
-    """
-    Устанавливает интенсивность пикселей по маске 0,
-    итогом служит прозрачный фон
-    :param mask: маска объекта
-    :param cropped_image: обрезанный объект
-    :return: обрезанный объект с альфа
-    """
-    cropped_with_alpha = cv2.cvtColor(cropped_image, cv2.COLOR_RGBA2BGRA)
-    three_channel_mask = get_three_channel_mask(mask)
-    bg_mask = numpy.invert(three_channel_mask)
-
-    alpha = cropped_with_alpha[:, :, 3]
-    alpha[numpy.all(bg_mask, 2)] = 0
-    return cropped_with_alpha
 
 
 def extract_object_from_image(image_as_arr, label):
@@ -111,6 +75,8 @@ def extract_object_from_image(image_as_arr, label):
     cropped_image = crop_image_as_rectangle(image_as_arr, crop_coords)
     mask_matrix = geometry.data
 
+    # cv2.imshow('cropped', cropped_image)
+    # cv2.waitKey()
     # cropped_with_alpha = to_transparent_background(mask_matrix, cropped_image)
     # cv2.imwrite(f'transparent_{label.obj_class.name}.png', cropped_with_alpha)  # для отладки
     return cropped_image, mask_matrix

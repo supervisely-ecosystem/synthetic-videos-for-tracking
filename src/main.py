@@ -10,19 +10,16 @@ from scene import Scene
 from functions_objects import *
 from functions_video import *
 from movement_laws import *
+from init_api import *
 
 
 app: sly.AppService = sly.AppService()
 
-team_id = int(os.environ['context.teamId'])
-workspace_id = int(os.environ['context.workspaceId'])
-project_id = int(os.environ['modal.state.slyProjectId'])
-
-project_info = app.public_api.project.get_info_by_id(project_id)
+project_info = app.public_api.project.get_info_by_id(PROJECT_ID)
 if project_info is None:
-    raise RuntimeError(f"Project id={project_id} not found")
+    raise RuntimeError(f"Project id={PROJECT_ID} not found")
 
-meta = sly.ProjectMeta.from_json(app.public_api.project.get_meta(project_id))
+meta = sly.ProjectMeta.from_json(app.public_api.project.get_meta(PROJECT_ID))
 if len(meta.obj_classes) == 0:
     raise ValueError("Project should have at least one class")
 
@@ -31,9 +28,9 @@ images_info = []
 MAX_VIDEO_HEIGHT = 800  # in pixels
 
 
-def cache_images_info(api: sly.Api, project_id):
+def cache_images_info(api: sly.Api, PROJECT_ID):
     global images_info
-    for dataset_info in api.dataset.get_list(project_id):
+    for dataset_info in api.dataset.get_list(PROJECT_ID):
         images_info.extend(api.image.get_list(dataset_info.id))
 
 
@@ -120,9 +117,9 @@ def preview(api: sly.Api, task_id, context, state, app_logger):
     progress.iter_done_report()
     refresh_progress_preview(api, task_id, progress)
     remote_video_path = os.path.join(f"/SLYvSynth/{task_id}", "preview.mp4")
-    if api.file.exists(team_id, remote_video_path):
-        api.file.remove(team_id, remote_video_path)
-    file_info = api.file.upload(team_id, video_path, remote_video_path)
+    if api.file.exists(TEAM_ID, remote_video_path):
+        api.file.remove(TEAM_ID, remote_video_path)
+    file_info = api.file.upload(TEAM_ID, video_path, remote_video_path)
 
     fields = [
         {"field": "state.previewLoading", "payload": False},
@@ -130,71 +127,71 @@ def preview(api: sly.Api, task_id, context, state, app_logger):
     ]
     api.task.set_fields(task_id, fields)
 
-
-def refresh_progress_split(api: sly.Api, task_id, progress: sly.Progress):
-    fields = [
-        {"field": "data.progress", "payload": int(progress.current * 100 / progress.total)},
-        {"field": "data.progressCurrent", "payload": progress.current},
-        {"field": "data.progressTotal", "payload": progress.total},
-    ]
-    api.task.set_fields(task_id, fields)
-
-
-@app.callback("gen_video")
-@sly.timeit
-def split(api: sly.Api, task_id, context, state, app_logger):
-    for i in range(0, 11):
-        if i == 1:
-            continue
-
-        div = 0.02 * i
-        general_transform = iaa.Sequential([
-            iaa.Resize((1 - div * 1.2, 1 + div * 1.2)),
-            iaa.Rot90((1, 4), keep_size=False),
-            iaa.Rotate(rotate=(-5 - i * 5, 5 + i * 5), fit_output=True)
-        ])
-
-        minor_transform = iaa.Sequential([
-            # iaa.Affine(rotate=(-5 - i, 5 + i)),
-            iaa.Resize((1 - div * 1.2, 1 + div * 1.2)),
-            iaa.Rotate(rotate=(-45 - i * 5, 45 + i * 5), fit_output=True),
-            iaa.AddToHueAndSaturation((int(-10 - i * 1.3), int(10 + i * 1.3))),
-            iaa.AddToBrightness((-2 - i * 2, 2 + i * 2)),
-            iaa.AdditiveGaussianNoise(scale=(0, 10 + i * 1.5)),
-            iaa.MotionBlur(k=(10, int(20 + i * 1.5)))
-            # iaa.ElasticTransformation(alpha=90, sigma=9),
-        ])
-
-        frame_transform = iaa.Sometimes(0.3, iaa.Sequential([
-            iaa.AddToHueAndSaturation((int(-10 - i * 1.3), int(10 + i * 1.3))),
-            iaa.AddToBrightness((-2 - i * 2, 2 + i * 2)),
-            iaa.AdditiveGaussianNoise(scale=(0, 10 + i * 2)),
-            iaa.MotionBlur(k=(10, int(20 + i * 1.5)))
-            # iaa.ElasticTransformation(alpha=90, sigma=9),
-        ]))
-
-        custom_scene = Scene(object_general_transforms=general_transform, object_minor_transforms=minor_transform,
-                             frame_transform=frame_transform)
-        custom_scene.add_background(f'./background_img/{i}.jpg')
-
-        custom_scene.add_objects(project_path, dataset_name)
-
-        fps = 5 + i * 5
-        custom_scene.generate_video(video_path=f'./test{i}_{fps}fps.mp4',
-                                    duration=int(900 / fps),
-                                    fps=fps,
-                                    objects_dict={'lemon': numpy.random.randint(2, 6)},
-                                    # objects_dict={'lemon': 2, 'kiwi': 1},
-                                    # objects_dict={'square': 4},
-                                    movement_laws=[
-                                        {'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
-                                        {'law': LinearLaw, 'params': ()}],
-
-                                    self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
-                                    speed_interval=(5, 32 + i),
-                                    project_id=4964
-                                    )
-    app.stop()
+#
+# def refresh_progress_split(api: sly.Api, task_id, progress: sly.Progress):
+#     fields = [
+#         {"field": "data.progress", "payload": int(progress.current * 100 / progress.total)},
+#         {"field": "data.progressCurrent", "payload": progress.current},
+#         {"field": "data.progressTotal", "payload": progress.total},
+#     ]
+#     api.task.set_fields(task_id, fields)
+#
+#
+# @app.callback("gen_video")
+# @sly.timeit
+# def split(api: sly.Api, task_id, context, state, app_logger):
+#     for i in range(0, 11):
+#         if i == 1:
+#             continue
+#
+#         div = 0.02 * i
+#         general_transform = iaa.Sequential([
+#             iaa.Resize((1 - div * 1.2, 1 + div * 1.2)),
+#             iaa.Rot90((1, 4), keep_size=False),
+#             iaa.Rotate(rotate=(-5 - i * 5, 5 + i * 5), fit_output=True)
+#         ])
+#
+#         minor_transform = iaa.Sequential([
+#             # iaa.Affine(rotate=(-5 - i, 5 + i)),
+#             iaa.Resize((1 - div * 1.2, 1 + div * 1.2)),
+#             iaa.Rotate(rotate=(-45 - i * 5, 45 + i * 5), fit_output=True),
+#             iaa.AddToHueAndSaturation((int(-10 - i * 1.3), int(10 + i * 1.3))),
+#             iaa.AddToBrightness((-2 - i * 2, 2 + i * 2)),
+#             iaa.AdditiveGaussianNoise(scale=(0, 10 + i * 1.5)),
+#             iaa.MotionBlur(k=(10, int(20 + i * 1.5)))
+#             # iaa.ElasticTransformation(alpha=90, sigma=9),
+#         ])
+#
+#         frame_transform = iaa.Sometimes(0.3, iaa.Sequential([
+#             iaa.AddToHueAndSaturation((int(-10 - i * 1.3), int(10 + i * 1.3))),
+#             iaa.AddToBrightness((-2 - i * 2, 2 + i * 2)),
+#             iaa.AdditiveGaussianNoise(scale=(0, 10 + i * 2)),
+#             iaa.MotionBlur(k=(10, int(20 + i * 1.5)))
+#             # iaa.ElasticTransformation(alpha=90, sigma=9),
+#         ]))
+#
+#         custom_scene = Scene(object_general_transforms=general_transform, object_minor_transforms=minor_transform,
+#                              frame_transform=frame_transform)
+#         custom_scene.add_background(f'./background_img/{i}.jpg')
+#
+#         custom_scene.add_objects(project_path, dataset_name)
+#
+#         fps = 5 + i * 5
+#         custom_scene.generate_video(video_path=f'./test{i}_{fps}fps.mp4',
+#                                     duration=int(900 / fps),
+#                                     fps=fps,
+#                                     objects_dict={'lemon': numpy.random.randint(2, 6)},
+#                                     # objects_dict={'lemon': 2, 'kiwi': 1},
+#                                     # objects_dict={'square': 4},
+#                                     movement_laws=[
+#                                         {'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
+#                                         {'law': LinearLaw, 'params': ()}],
+#
+#                                     self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
+#                                     speed_interval=(5, 32 + i),
+#                                     PROJECT_ID=4964
+#                                     )
+#     app.stop()
 
 
 def main():
@@ -217,7 +214,7 @@ def main():
     data["progressPreviewCurrent"] = 0
     data["progressPreviewTotal"] = 0
 
-    cache_images_info(app.public_api, project_id)
+    cache_images_info(app.public_api, PROJECT_ID)
     app.run(data=data, state=state)
 
 

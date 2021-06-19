@@ -10,13 +10,11 @@ def init_input_project(api: sly.Api, data: dict, project_info):
 
 
 def init_settings(state):
-    state["windowHeight"] = 256
-    state["windowWidth"] = 256
-    state["overlapY"] = 32
-    state["overlapX"] = 32
-    state["borderStrategy"] = "shift_window"  # "add_padding"
-    state["fps"] = 4
-    state["drawLabels"] = True
+    state["linearLaw"] = 'true'
+    state["randomLaw"] = 'false'
+    state["fps"] = 25
+
+    state["speedInterval"] = [5, 20]
 
 
 def init_res_project(data, state, project_info):
