@@ -17,11 +17,13 @@ def init_settings(state):
     state["bgDatasets"] = None
     state["allDatasets"] = True
 
+    state["speedInterval"] = [5, 20]
     state["linearLaw"] = True
     state["randomLaw"] = True
     state["fps"] = 25
 
-    state["speedInterval"] = [5, 20]
+    state["durationPreview"] = 1
+    state["durationVideo"] = 60
 
 
 def init_res_project(data, state, project_info):
@@ -30,3 +32,5 @@ def init_res_project(data, state, project_info):
     data["resProjectName"] = None
     data["resProjectPreviewUrl"] = None
     data["started"] = False
+
+

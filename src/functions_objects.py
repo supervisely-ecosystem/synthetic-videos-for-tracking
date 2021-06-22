@@ -3,6 +3,8 @@ import numpy
 import cv2
 import os
 
+from init_api import *
+
 from logger import logger
 
 
@@ -11,24 +13,17 @@ class ExtractedObject:
     Класс извлеченного объекта.
     Содержит базовые характеристики, необходимые для работы с объектом.
     """
-    def __init__(self, image, mask, area, class_name, proj_path, ds_name):
+    def __init__(self, image, mask, is_tracking, area, class_name, image_id, ds_id):
         self.image = image
         self.image_backup = image
         self.mask = mask
         self.mask_backup = mask
+        self.is_tracking = is_tracking
         self.area = area
         self.class_name = class_name
-        self.proj_path = proj_path
-        self.ds_name = ds_name
+        self.image_id = image_id
+        self.ds_id = ds_id
 
-
-def open_project(proj_path):
-    """
-    Открвыает проект в формата SLY
-    :param proj_path: путь до проекта
-    :return: объект проекта
-    """
-    return sly.Project(proj_path, sly.OpenMode.READ)
 
 
 def get_images_names(path_to_ds):
@@ -82,37 +77,30 @@ def extract_object_from_image(image_as_arr, label):
     return cropped_image, mask_matrix
 
 
-def get_objects_list_for_project(project_path, dataset_name):
+def get_objects_list_for_project(req_objects):
     """
-    Извлекает все объекты для проекта, хранит в виде объектов класса ExtractedObject
-    :param project_path: путь до проекта формата SLY
-    :param dataset_name: имя датасета
-    :return: список объектов, извлеченных из проекта в виде объектов класса ExtractedObject
+    Extract all needed objects from images
+    :param req_objects: list of required objects with obj_bitmaps and images_paths
+    :return: list of extracted objects in ExtractedObject class format
     """
     extracted_objects = []
 
-    project = open_project(project_path)
-    images_names = get_images_names(os.path.join(project_path, dataset_name))
-    logger.info(f'extracting objects...')
-    for image_name in images_names:  # по всем изображениям в датасете
-        item_paths = project.datasets.get(dataset_name).get_item_paths(image_name)
-        ann = sly.Annotation.load_json_file(item_paths.ann_path, project.meta)
+    for curr_object in req_objects:
+        ann = sly.Annotation.from_json(curr_object.annotation,
+                                       sly.ProjectMeta.from_json(api.project.get_meta(id=PROJECT_ID)))
 
-        image_as_arr = cv2.imread(item_paths.img_path)
-        # image_as_arr = cv2.cvtColor(image_as_arr, cv2.COLOR_BGR2RGB)
-
+        image_as_arr = cv2.imread(curr_object.image_path)
         for label in ann.labels:  # по всем объектам на изображении
-            # print(f'workin now with {label.obj_class.name}')  #  для отладки
-            # logger.info(f'[{len(extracted_objects)}] extracting {label.obj_class.name} now')
             extracted_object_image, mask = extract_object_from_image(image_as_arr, label)
 
             extracted_objects.append(
                 ExtractedObject(image=extracted_object_image,
                                 mask=mask,
+                                is_tracking=curr_object.is_tracking,
                                 area=label.area,
                                 class_name=label.obj_class.name,
-                                proj_path=project_path,
-                                ds_name=dataset_name)
+                                image_id=curr_object.image_id,
+                                ds_id=curr_object.ds_id)
             )
 
     return extracted_objects

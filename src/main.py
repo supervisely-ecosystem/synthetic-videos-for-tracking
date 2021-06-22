@@ -5,7 +5,7 @@ from init_ui import *
 from init_api import *
 
 from scene import Scene
-from download_ds import download_project
+from download_ds import *
 from transformations import get_transforms
 from functions_background import *
 from movement_laws import *
@@ -20,19 +20,14 @@ if len(meta.obj_classes) == 0:
 
 images_info = []
 
-MAX_VIDEO_HEIGHT = 800  # in pixels
-
 
 class SlyProgress:
     def __init__(self, api, task_id, pbar_element_name):
         self.api = api
         self.task_id = task_id
-
         self.pbar_element_name = pbar_element_name
-
         self.pbar = None
-
-        self.refresh_params('-', 0)
+        # self.refresh_params('-', 0)
 
     def refresh_params(self, desc, total):
         self.pbar = sly.Progress(desc, total)
@@ -82,34 +77,36 @@ def preview(api: sly.Api, task_id, context, state, app_logger):
 
     sly_progress.refresh_params("Downloading datasets", 2)
 
-    download_project(project_id=PROJECT_ID,
-                     dataset_ids=None,
-                     all_ds=True,
-                     subdir='objects')
+    objects_ann_info = get_project_ann_info(project_id=PROJECT_ID,
+                                            dataset_ids=None,
+                                            all_ds=True)
 
     sly_progress.next_step()
 
-    download_project(project_id=state['bgProjectId'],
-                     dataset_ids=state['bgDatasets'],
-                     all_ds=state['allDatasets'],
-                     subdir='backgrounds')
+    backgrounds_ann_info = get_project_ann_info(project_id=state['bgProjectId'],
+                                                dataset_ids=state['bgDatasets'],
+                                                all_ds=state['allDatasets'])
 
     sly_progress.next_step()
 
-    project_path = os.path.join(app.data_dir, 'objects')  # init scene
-    dataset_names = [name for name in os.listdir(project_path) if os.path.isdir(os.path.join(project_path, name))]
+    req_objects = get_list_req_objects(objects_ann_info, state)  # init scene
+    req_backgrounds = get_list_req_backgrounds(backgrounds_ann_info, state)
+
+    download_images(req_objects, 'objects')
+    download_images(req_backgrounds, 'backgrounds')
 
     _, minor_transform, frame_transform = get_transforms(5)
 
-    background_paths = get_background_paths(app.data_dir)
+    background_paths = [curr_background.image_path for curr_background in req_backgrounds]
 
     custom_scene = Scene(object_general_transforms=None, object_minor_transforms=minor_transform,
                          frame_transform=frame_transform)
 
-    custom_scene.add_background(background_paths[random.randint(0, len(background_paths) - 1)])
-    custom_scene.add_objects(project_path, dataset_names)
+    custom_scene.add_backgrounds([background_paths[random.randint(0, len(background_paths) - 1)]])
+    custom_scene.add_objects(req_objects)
 
     fps = state['fps']
+    duration = state['durationPreview']
 
     video_path = os.path.join(app.data_dir, './preview.mp4')
 
@@ -118,9 +115,8 @@ def preview(api: sly.Api, task_id, context, state, app_logger):
                                                   'randomLaw': state['randomLaw']})
 
     custom_scene.generate_video(video_path=video_path,  # generate video
-                                duration=5,
+                                duration=duration,
                                 fps=fps,
-                                objects_dict={'lemon': numpy.random.randint(1, 2)},
                                 movement_laws=movement_laws,
                                 self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
                                 speed_interval=tuple(state['speedInterval']),
@@ -152,35 +148,36 @@ def synthesize(api: sly.Api, task_id, context, state, app_logger):
 
     sly_progress.refresh_params("Downloading datasets", 2)
 
-    download_project(project_id=PROJECT_ID,
-                     dataset_ids=None,
-                     all_ds=True,
-                     subdir='objects')
+    objects_ann_info = get_project_ann_info(project_id=PROJECT_ID,
+                                            dataset_ids=None,
+                                            all_ds=True)
 
     sly_progress.next_step()
 
-    download_project(project_id=state['bgProjectId'],
-                     dataset_ids=state['bgDatasets'],
-                     all_ds=state['allDatasets'],
-                     subdir='backgrounds')
+    backgrounds_ann_info = get_project_ann_info(project_id=state['bgProjectId'],
+                                                dataset_ids=state['bgDatasets'],
+                                                all_ds=state['allDatasets'])
 
     sly_progress.next_step()
 
-    project_path = os.path.join(app.data_dir, 'objects')  # init scene
-    dataset_names = [name for name in os.listdir(project_path) if os.path.isdir(os.path.join(project_path, name))]
+    req_objects = get_list_req_objects(objects_ann_info, state)  # init scene
+    req_backgrounds = get_list_req_backgrounds(backgrounds_ann_info, state)
+
+    download_images(req_objects, 'objects')
+    download_images(req_backgrounds, 'backgrounds')
 
     _, minor_transform, frame_transform = get_transforms(5)
 
-    background_paths = get_background_paths(app.data_dir)
+    background_paths = [curr_background.image_path for curr_background in req_backgrounds]
 
     custom_scene = Scene(object_general_transforms=None, object_minor_transforms=minor_transform,
                          frame_transform=frame_transform)
 
-    custom_scene.add_background(background_paths[random.randint(0, len(background_paths) - 1)])
-    custom_scene.add_objects(project_path, dataset_names)
+    custom_scene.add_backgrounds(background_paths)
+    custom_scene.add_objects(req_objects)
 
     fps = state['fps']
-    duration = 5
+    duration = state['durationVideo']
 
     video_path = os.path.join(app.data_dir, f'./{duration}sec_{fps}fps.mp4')
 
@@ -189,16 +186,15 @@ def synthesize(api: sly.Api, task_id, context, state, app_logger):
                                                   'randomLaw': state['randomLaw']})
 
     custom_scene.generate_video(video_path=video_path,  # generate video
-                                duration=5,
+                                duration=duration,
                                 fps=fps,
-                                objects_dict={'lemon': numpy.random.randint(1, 2)},
                                 movement_laws=movement_laws,
                                 self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
                                 speed_interval=tuple(state['speedInterval']),
                                 project_id=None,
                                 project_name=state["resProjectName"],
                                 upload_ann=True,
-                                sly_progress=sly_progress
+                                sly_progress=sly_progress,
                                 )
 
     res_project = api.project.get_info_by_id(custom_scene.ann_keeper.project.id)
@@ -214,14 +210,32 @@ def synthesize(api: sly.Api, task_id, context, state, app_logger):
     app.stop()
 
 
-def main():
-    data = {}
-    state = {}
+def init_objects_table(data, state):
+    columns = [
+        {"title": "Name", "subtitle": "label in project"},
+        {"title": "Shape", "subtitle": "shape type"},
+        {"title": "Color", "subtitle": "color of mask"},
+        {"title": "Count", "subtitle": "count to add"},
+        {"title": "Positive", "subtitle": "track that object"},
+    ]
 
-    init_input_project(app.public_api, data, project_info)
-    init_settings(state)
-    init_res_project(data, state, project_info)
+    data["myColumns"] = columns
 
+    objects_project_meta = api.project.get_meta(id=PROJECT_ID)
+
+    rows = generate_rows_by_ann(objects_project_meta)
+
+    data["myRows"] = rows
+
+    state["classCounts"] = {
+        row['Name']: 0 for row in rows
+    }
+    state["classIsPositive"] = {
+        row['Name']: True for row in rows
+    }
+
+
+def init_progress_bars(data, state):
     data["videoUrl"] = None
 
     data["progressSynth"] = 0
@@ -234,6 +248,18 @@ def main():
     data["progressPreviewMessage"] = "-"
     data["progressPreviewCurrent"] = 0
     data["progressPreviewTotal"] = 0
+
+
+def main():
+    data = {}
+    state = {}
+
+    init_input_project(app.public_api, data, project_info)
+    init_settings(state)
+    init_res_project(data, state, project_info)
+
+    init_progress_bars(data, state)
+    init_objects_table(data, state)
 
     cache_images_info(app.public_api, PROJECT_ID)
     app.run(data=data, state=state)
