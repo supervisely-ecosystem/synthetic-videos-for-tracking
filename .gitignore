@@ -3,6 +3,8 @@ test.py
 .DS_Store
 .idea
 
+Icon?
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
