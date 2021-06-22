@@ -18,6 +18,7 @@ def init_settings(state):
     state["allDatasets"] = True
 
     state["speedInterval"] = [5, 20]
+    state["objectOverlayInterval"] = [0.4, 0.6]
     state["linearLaw"] = True
     state["randomLaw"] = True
     state["fps"] = 25

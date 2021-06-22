@@ -61,6 +61,73 @@ def check_setting():
     return 0
 
 
+def process_video(sly_progress, state, is_preview=True):
+    sly_progress.refresh_params("Downloading datasets", 2)
+
+    objects_ann_info = get_project_ann_info(project_id=PROJECT_ID,
+                                            dataset_names=None,
+                                            all_ds=True)
+
+    sly_progress.next_step()
+
+    backgrounds_ann_info = get_project_ann_info(project_id=state['bgProjectId'],
+                                                dataset_names=state['bgDatasets'],
+                                                all_ds=state['allDatasets'])
+
+    sly_progress.next_step()
+
+    req_objects = get_list_req_objects(objects_ann_info, state)  # init scene
+    req_backgrounds = get_list_req_backgrounds(backgrounds_ann_info, state)
+
+    download_images(req_objects, 'objects')
+    download_images(req_backgrounds, 'backgrounds')
+
+    _, minor_transform, frame_transform = get_transforms(5)
+
+    background_paths = [curr_background.image_path for curr_background in req_backgrounds]
+
+    custom_scene = Scene(object_general_transforms=None, object_minor_transforms=minor_transform,
+                         frame_transform=frame_transform)
+
+    if is_preview:
+        custom_scene.add_backgrounds([background_paths[random.randint(0, len(background_paths) - 1)]])
+    else:
+        custom_scene.add_backgrounds(background_paths)
+
+    custom_scene.add_objects(req_objects)
+
+    fps = state['fps']
+
+    if is_preview:
+        duration = state['durationPreview']
+    else:
+        duration = state['durationVideo']
+
+    if is_preview:
+        video_path = os.path.join(app.data_dir, './preview.mp4')
+    else:
+        video_path = os.path.join(app.data_dir, f'./{duration}sec_{fps}fps.mp4')
+
+    movement_laws = load_movements_laws(custom_scene=custom_scene,
+                                        req_laws={'linearLaw': state['linearLaw'],
+                                                  'randomLaw': state['randomLaw']})
+
+    custom_scene.generate_video(video_path=video_path,  # generate video
+                                duration=duration,
+                                fps=fps,
+                                movement_laws=movement_laws,
+                                self_overlay=tuple(state['objectOverlayInterval']),
+                                speed_interval=tuple(state['speedInterval']),
+                                project_id=None,
+                                project_name=state["resProjectName"],
+                                upload_ann=False if is_preview else True,
+                                sly_progress=sly_progress
+                                )
+
+    if custom_scene.ann_keeper.project:
+        return custom_scene.ann_keeper.project.id
+
+
 @app.callback("preview")
 @sly.timeit
 def preview(api: sly.Api, task_id, context, state, app_logger):
@@ -75,63 +142,14 @@ def preview(api: sly.Api, task_id, context, state, app_logger):
 
     api.task.set_fields(task_id, fields)
 
-    sly_progress.refresh_params("Downloading datasets", 2)
-
-    objects_ann_info = get_project_ann_info(project_id=PROJECT_ID,
-                                            dataset_ids=None,
-                                            all_ds=True)
-
-    sly_progress.next_step()
-
-    backgrounds_ann_info = get_project_ann_info(project_id=state['bgProjectId'],
-                                                dataset_ids=state['bgDatasets'],
-                                                all_ds=state['allDatasets'])
-
-    sly_progress.next_step()
-
-    req_objects = get_list_req_objects(objects_ann_info, state)  # init scene
-    req_backgrounds = get_list_req_backgrounds(backgrounds_ann_info, state)
-
-    download_images(req_objects, 'objects')
-    download_images(req_backgrounds, 'backgrounds')
-
-    _, minor_transform, frame_transform = get_transforms(5)
-
-    background_paths = [curr_background.image_path for curr_background in req_backgrounds]
-
-    custom_scene = Scene(object_general_transforms=None, object_minor_transforms=minor_transform,
-                         frame_transform=frame_transform)
-
-    custom_scene.add_backgrounds([background_paths[random.randint(0, len(background_paths) - 1)]])
-    custom_scene.add_objects(req_objects)
-
-    fps = state['fps']
-    duration = state['durationPreview']
+    process_video(sly_progress, state, is_preview=True)
 
     video_path = os.path.join(app.data_dir, './preview.mp4')
-
-    movement_laws = load_movements_laws(custom_scene=custom_scene,
-                                        req_laws={'linearLaw': state['linearLaw'],
-                                                  'randomLaw': state['randomLaw']})
-
-    custom_scene.generate_video(video_path=video_path,  # generate video
-                                duration=duration,
-                                fps=fps,
-                                movement_laws=movement_laws,
-                                self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
-                                speed_interval=tuple(state['speedInterval']),
-                                project_id=None,
-                                project_name='SLYvSynth',
-                                upload_ann=False,
-                                sly_progress=sly_progress
-                                )
-
     remote_video_path = os.path.join(f"/SLYvSynth/{task_id}", "preview.mp4")
     if api.file.exists(TEAM_ID, remote_video_path):
         api.file.remove(TEAM_ID, remote_video_path)
     file_info = api.file.upload(TEAM_ID, video_path, remote_video_path)
 
-    print(file_info.full_storage_url)
     fields = [
         {"field": "data.videoUrl", "payload": file_info.full_storage_url},
         {"field": "state.previewLoading", "payload": False},
@@ -146,58 +164,8 @@ def synthesize(api: sly.Api, task_id, context, state, app_logger):
 
     check_setting()  # check req params
 
-    sly_progress.refresh_params("Downloading datasets", 2)
+    res_project = process_video(sly_progress, state, is_preview=False)
 
-    objects_ann_info = get_project_ann_info(project_id=PROJECT_ID,
-                                            dataset_ids=None,
-                                            all_ds=True)
-
-    sly_progress.next_step()
-
-    backgrounds_ann_info = get_project_ann_info(project_id=state['bgProjectId'],
-                                                dataset_ids=state['bgDatasets'],
-                                                all_ds=state['allDatasets'])
-
-    sly_progress.next_step()
-
-    req_objects = get_list_req_objects(objects_ann_info, state)  # init scene
-    req_backgrounds = get_list_req_backgrounds(backgrounds_ann_info, state)
-
-    download_images(req_objects, 'objects')
-    download_images(req_backgrounds, 'backgrounds')
-
-    _, minor_transform, frame_transform = get_transforms(5)
-
-    background_paths = [curr_background.image_path for curr_background in req_backgrounds]
-
-    custom_scene = Scene(object_general_transforms=None, object_minor_transforms=minor_transform,
-                         frame_transform=frame_transform)
-
-    custom_scene.add_backgrounds(background_paths)
-    custom_scene.add_objects(req_objects)
-
-    fps = state['fps']
-    duration = state['durationVideo']
-
-    video_path = os.path.join(app.data_dir, f'./{duration}sec_{fps}fps.mp4')
-
-    movement_laws = load_movements_laws(custom_scene=custom_scene,
-                                        req_laws={'linearLaw': state['linearLaw'],
-                                                  'randomLaw': state['randomLaw']})
-
-    custom_scene.generate_video(video_path=video_path,  # generate video
-                                duration=duration,
-                                fps=fps,
-                                movement_laws=movement_laws,
-                                self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
-                                speed_interval=tuple(state['speedInterval']),
-                                project_id=None,
-                                project_name=state["resProjectName"],
-                                upload_ann=True,
-                                sly_progress=sly_progress,
-                                )
-
-    res_project = api.project.get_info_by_id(custom_scene.ann_keeper.project.id)
     fields = [
         {"field": "data.started", "payload": False},
         {"field": "data.resProjectId", "payload": res_project.id},

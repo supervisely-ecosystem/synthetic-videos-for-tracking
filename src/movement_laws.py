@@ -63,7 +63,6 @@ def load_movements_laws(custom_scene, req_laws):
         if law_status:
             chosen_laws.append(laws[law_name])
 
-    print(chosen_laws)
     return chosen_laws
 
 
