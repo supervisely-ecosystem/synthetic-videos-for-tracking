@@ -11,11 +11,13 @@ class RequirementObject:
         self.annotation = annotation
 
 
-def get_project_ann_info(project_id, dataset_ids=None, all_ds=False):
+def get_project_ann_info(project_id, dataset_names=None, all_ds=False):
     ann_infos = {}
 
     if all_ds:
         dataset_ids = [ds.id for ds in api.dataset.get_list(project_id)]
+    else:
+        dataset_ids = [ds.id if ds.name in dataset_names else None for ds in api.dataset.get_list(project_id)]
 
     for dataset_id in dataset_ids:
         ann_infos[dataset_id] = api.annotation.get_list(dataset_id)

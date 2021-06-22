@@ -83,7 +83,7 @@ class MovementController:
 
         self.movement_law = movement_law
         self.speed_interval = speed_interval
-        self.self_overlay = self_overlay
+        self.self_overlay = numpy.random.uniform(self_overlay[0], self_overlay[1])
         self.size_of_next_step = int(numpy.random.randint(self.speed_interval[0], self.speed_interval[1]))
 
         self.background_shape = background_shape

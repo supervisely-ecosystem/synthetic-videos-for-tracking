@@ -14,11 +14,11 @@ def get_transforms(i):
         # iaa.Affine(rotate=(-5 - i, 5 + i)),
         iaa.Resize((1 - div * 1.2, 1 + div * 1.2)),
         # iaa.Rotate(rotate=(-45 - i * 5, 45 + i * 5), fit_output=True),
-        iaa.Rotate(rotate=(0, 360), fit_output=True),
+        iaa.Rotate(rotate=(-10, 10), fit_output=True),
         # iaa.Fliplr(p=0.5),
-        iaa.AddToHueAndSaturation((int(-10 - i * 1.3), int(10 + i * 1.3))),
+        # iaa.AddToHueAndSaturation((int(-10 - i * 1.3), int(10 + i * 1.3))),
         iaa.AddToBrightness((-2 - i * 2, 2 + i * 2)),
-        iaa.AdditiveGaussianNoise(scale=(0, 10 + i * 1.5)),
+        # iaa.AdditiveGaussianNoise(scale=(0, 10 + i * 1.5)),
         iaa.MotionBlur(k=(10, int(20 + i * 1.5)))
         # iaa.ElasticTransformation(alpha=90, sigma=9),
     ])
