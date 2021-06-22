@@ -5,19 +5,6 @@ import os
 import glob
 
 
-def get_background_paths(data_dir):
-    backgrounds_images_path = []
-
-    background_path = os.path.join(data_dir, 'backgrounds')
-    datasets = os.listdir(background_path)
-
-    for dataset in datasets:
-        background_dataset = os.path.join(background_path, dataset, 'img/*')
-        backgrounds_images_path.extend(glob.glob(background_dataset))
-
-    return sorted(backgrounds_images_path)
-
-
 def get_cv2_background_by_path(background_path):
     """
     функция открывает изображение и возвращает объект cv2

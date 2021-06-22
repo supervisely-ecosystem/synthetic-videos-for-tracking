@@ -132,20 +132,20 @@ class MovementController:
                                                                  segmentation_maps=segment_map)
             mask_aug = segment_map_aug.get_arr()
 
-            if not ((image_aug.shape[0] < 130 or image_aug.shape[1] < 130) or
-                    (image_aug.shape[0] > 650 or image_aug.shape[1] > 650)):
+            # if not ((image_aug.shape[0] < 130 or image_aug.shape[1] < 130) or
+            #         (image_aug.shape[0] > 650 or image_aug.shape[1] > 650)):
 
-                t, l, b, r = find_mask_tight_bbox(mask_aug)
+            t, l, b, r = find_mask_tight_bbox(mask_aug)
 
-                image_aug = image_aug[t:b, l:r]
-                mask_aug = mask_aug[t:b, l:r]
+            image_aug = image_aug[t:b, l:r]
+            mask_aug = mask_aug[t:b, l:r]
 
-                curr_object.image = image_aug
-                curr_object.image_backup = image_aug
-                curr_object.mask = mask_aug
-                curr_object.mask_backup = mask_aug
+            curr_object.image = image_aug
+            curr_object.image_backup = image_aug
+            curr_object.mask = mask_aug
+            curr_object.mask_backup = mask_aug
 
-                # self.calculate_allowable_limits(curr_object.image)
+            # self.calculate_allowable_limits(curr_object.image)
 
         else:
             stat_time = time()
@@ -155,16 +155,16 @@ class MovementController:
 
             mask_aug = segment_map_aug.get_arr()
 
-            if not ((image_aug.shape[0] < 130 or image_aug.shape[1] < 130) or
-                    (image_aug.shape[0] > 700 or image_aug.shape[1] > 700)):
+            # if not ((image_aug.shape[0] < 130 or image_aug.shape[1] < 130) or
+            #         (image_aug.shape[0] > 700 or image_aug.shape[1] > 700)):
 
-                t, l, b, r = find_mask_tight_bbox(mask_aug)
+            t, l, b, r = find_mask_tight_bbox(mask_aug)
 
-                image_aug = image_aug[t:b, l:r]
-                mask_aug = mask_aug[t:b, l:r]
+            image_aug = image_aug[t:b, l:r]
+            mask_aug = mask_aug[t:b, l:r]
 
-                curr_object.image = image_aug
-                curr_object.mask = mask_aug
+            curr_object.image = image_aug
+            curr_object.mask = mask_aug
 
         self.calculate_allowable_limits(curr_object.image)
 

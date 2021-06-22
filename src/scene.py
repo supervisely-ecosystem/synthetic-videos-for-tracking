@@ -24,25 +24,25 @@ class Scene:
 
         self.ann_keeper = None
 
-    def add_background(self, background_path):
-        self.backgrounds.append(get_cv2_background_by_path(background_path))
-        logger.info('background successfully added')
+    def add_backgrounds(self, background_paths):
+        for background_path in background_paths:
+            self.backgrounds.append(get_cv2_background_by_path(background_path))
+        logger.info(f'{len(self.backgrounds)} backgrounds successfully added')
 
-    def add_objects(self, project_path, dataset_names):
-        for dataset_name in dataset_names:
-            extracted_objects = get_objects_list_for_project(project_path, dataset_name)
-            self.objects.extend(extracted_objects)
+    def add_objects(self, req_objects):
 
-            logger.info(f'[{len(extracted_objects)}] objects from {project_path}/{dataset_name} successfully added')
+        self.objects = get_objects_list_for_project(req_objects)
+
+        logger.info(f'[{len(self.objects)}] objects successfully added')
         logger.info(f'available objects:\n'
                     f'{get_available_objects(self.objects)}\n')
 
-    def generate_video(self, video_path, fps, duration, objects_dict, movement_laws, self_overlay,
+    def generate_video(self, video_path, fps, duration, movement_laws, self_overlay,
                        speed_interval,
                        project_id=None, project_name='SLYvSynth',
                        upload_ann=False, sly_progress=None):
 
-        temp_objects = load_required_objects(objects_dict, self.objects)
+        temp_objects = self.objects
         initialize_controllers(temp_objects, movement_laws, speed_interval,
                                self_overlay, self.backgrounds[0].shape,
                                general_transforms=self.object_general_transforms,
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     # project_path = './objects/small_squares'
     dataset_names = ['ds1']
 
-    for i in range(1, 11):
+    for i in range(3, 11):
 
         div = 0.02 * i
 
@@ -83,13 +83,13 @@ if __name__ == "__main__":
             # iaa.Affine(rotate=(-5 - i, 5 + i)),
             iaa.Resize((1 - div * 1.2, 1 + div * 1.2)),
             # iaa.Rotate(rotate=(-45 - i * 5, 45 + i * 5), fit_output=True),
-            iaa.Rotate(rotate=(0, 360), fit_output=True),
+            iaa.Rotate(rotate=(1, 360), fit_output=True),
             # iaa.Fliplr(p=0.5),
             iaa.AddToHueAndSaturation((int(-10 - i * 1.3), int(10 + i * 1.3))),
             iaa.AddToBrightness((-2 - i * 2, 2 + i * 2)),
             iaa.AdditiveGaussianNoise(scale=(0, 10 + i * 1.5)),
-            iaa.MotionBlur(k=(10, int(20 + i * 1.5)))
-            # iaa.ElasticTransformation(alpha=90, sigma=9),
+            iaa.MotionBlur(k=(10, int(20 + i * 1.5))),
+            iaa.Sometimes(0.3, iaa.ElasticTransformation(alpha=90, sigma=9)),
         ])
 
         frame_transform = iaa.Sometimes(0.3, iaa.Sequential([
@@ -103,23 +103,25 @@ if __name__ == "__main__":
 
         custom_scene = Scene(object_general_transforms=None, object_minor_transforms=minor_transform,
                              frame_transform=frame_transform)
-        custom_scene.add_background(f'./background_img/{i}.jpg')
+        custom_scene.add_backgrounds(f'./background_img/{i}.jpg')
 
         custom_scene.add_objects(project_path, dataset_names)
 
-        fps = 5 + i * 5
+        fps = 15
         custom_scene.generate_video(video_path=f'./test{i}_{fps}fps.mp4',
                                     duration=int(900 / fps),
                                     # duration=10,
                                     fps=fps,
-                                    objects_dict={'lemon': numpy.random.randint(2, 6)},
+                                    objects_dict={'lemon': 6},
                                     # objects_dict={'lemon': 2, 'kiwi': 1},
                                     # objects_dict={'square': 4},
                                     movement_laws=[
                                         {'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
                                         {'law': LinearLaw, 'params': ()}],
 
-                                    self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
-                                    speed_interval=(5, 32 + i),
-                                    project_id=5014
+                                    self_overlay=0.1 + numpy.random.uniform(-0.1, 0.3),
+                                    speed_interval=(1, 15 + i),
+                                    project_id=5029,
+                                    project_name="TEST6_SINGLECLASS",
+                                    upload_ann=True,
                                     )
