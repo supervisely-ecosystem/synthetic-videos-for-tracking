@@ -1,5 +1,22 @@
 <div id="v-synth">
     <sly-style>
+        #svs .el-tabs.el-tabs-cards .el-radio {
+        display: flex;
+        align-items: start;
+        /*margin-bottom: 10px;*/
+        margin-left: 0;
+        white-space: normal;
+        }
+
+        #svs .el-tabs.el-tabs-cards .el-radio__label div {
+        color: #7f858e;
+        font-size: 13px;
+        }
+
+        #svs .el-tabs.el-tabs-cards .el-radio__label {
+        line-height: 17px;
+        }
+
         .beautiful-table { border-collapse: collapse; }
         .beautiful-table tr:nth-child(2n) { background-color: #f6f8fa; }
         .beautiful-table td, .beautiful-table th {
@@ -12,91 +29,26 @@
         text-align: left;
         }
 
-
+        #svs .el-tabs.el-tabs-cards { border-radius: 4px; box-shadow: none; }
+        #svs .el-tabs.el-tabs-cards .el-tabs__header { background-color: #f6fafd; }
+        #svs .el-tabs.el-tabs-cards .el-tabs__nav { float: none; display: flex; justify-content:
+        space-between; }
+        #svs .el-tabs.el-tabs-cards .el-tabs__item { flex: 1; margin-bottom: -3px; padding: 9px 16px
+        13px;
+        height: auto; line-height: normal; border-radius: 4px; }
 
     </sly-style>
 
 
-    <sly-card title="Input Project" subtitle="Original data remains unchanged, new project will be created">
-        <sly-field title="" description="Input Data">
-            <a slot="title" target="_blank"
-               :href="`/projects/${data.projectId}/datasets`">{{ data.projectName }} ({{ data.projectItemsCount }}
-                images)</a>
-            <sly-icon slot="icon" :options="{ imageUrl: `${data.projectPreviewUrl}` }"/>
-        </sly-field>
-    </sly-card>
-    <div class="fflex mt15" style="align-items: stretch">
-        <sly-card class="mr15" title="Select Background">
+    <sly-stepper :active="state.activeStep">
+        <sly-stepper-item>
+            {% include 'src/ui/input_project.html' %}
+        </sly-stepper-item>
+        <sly-stepper-item>
+            {% include 'src/ui/augs.html' %}
+        </sly-stepper-item>
+    </sly-stepper>
 
-
-            <sly-select-team-workspace
-                    :team-id.sync="state.bgTeamId"
-                    :workspace-id.sync="state.bgWorkspaceId">
-            </sly-select-team-workspace>
-            <sly-select-project
-                    :workspace-id="state.bgWorkspaceId"
-                    :project-id.sync="state.bgProjectId">
-            </sly-select-project>
-
-            <el-checkbox class="mt15" v-model="state.allDatasets">All datasets</el-checkbox>
-            <sly-select-dataset
-                    v-show="!state.allDatasets"
-                    :project-id="state.bgProjectId"
-                    :datasets.sync="state.bgDatasets"
-                    :options="{'multiple': true}">
-            </sly-select-dataset>
-
-        </sly-card>
-
-        <sly-card title="Select objects" subtitle="Select objects for further processing" style="width: 100%; height:440px">
-            <table class="beautiful-table" style="width: 100%">
-                <thead>
-                <tr>
-                    <th v-for="col in data.myColumns">
-                        <div v-html="col['title']"></div>
-                        <div style="color: #7f858e; font-weight: normal; font-size: 12px;">
-                            {{ col["subtitle"] }}
-                        </div>
-                    </th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr v-for="(row, row_index) in data.myRows">
-                    <td v-for="(col, col_index) in data.myColumns">
-                        <div v-if="col.title === 'Selected'">
-                            <el-checkbox v-model="state.classChecked[row['Name']]"></el-checkbox>
-                        </div>
-                        <div v-if="col.title === 'Name'">
-                            {{ row[col.title] }}
-                        </div>
-                        <div v-if="col.title === 'Shape'">
-                            <i class="zmdi zmdi-shape mr5"></i> {{ row[col.title] }}
-                        </div>
-                        <div v-if="col.title === 'Color'">
-                            <i class="zmdi zmdi-circle mr5" :style="{color: row[col.title]}"></i> {{ row[col.title] }}
-                        </div>
-                        <div v-if="col.title === 'Count'">
-                            <el-input-number v-model="state.classCounts[row.Name]" :min="0"
-                                             size="small"></el-input-number>
-                        </div>
-
-                        <div v-if="col.title === 'Positive'">
-                            <el-switch
-                                    v-model="state.classIsPositive[row.Name]"
-                                    on-text=""
-                                    off-text=""
-                                    disabled>
-                            </el-switch>
-                        </div>
-
-
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </sly-card>
-
-    </div>
 
     <div class="fflex mt15" style="align-items: stretch">
         <sly-card class="mr15"
@@ -170,7 +122,8 @@
                   style="width: 100%">
             <div slot="header" class="mb10">
                 <div><b style="font-size: 13px">Preview duration</b></div>
-                <el-input-number class="mt5 mr15" v-model="state.durationPreview" :min="1" :max="10" size="small"></el-input-number>
+                <el-input-number class="mt5 mr15" v-model="state.durationPreview" :min="1" :max="10"
+                                 size="small"></el-input-number>
                 <el-button
                         type="primary"
                         @click="state.previewLoading = true; command('preview')"

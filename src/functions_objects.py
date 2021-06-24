@@ -3,7 +3,7 @@ import numpy
 import cv2
 import os
 
-from init_api import *
+from sly_globals import *
 
 from logger import logger
 
@@ -13,7 +13,7 @@ class ExtractedObject:
     Класс извлеченного объекта.
     Содержит базовые характеристики, необходимые для работы с объектом.
     """
-    def __init__(self, image, mask, is_tracking, area, class_name, image_id, ds_id):
+    def __init__(self, image, mask, is_tracking, area, class_name, image_id, ds_id, sly_ann):
         self.image = image
         self.image_backup = image
         self.mask = mask
@@ -24,6 +24,7 @@ class ExtractedObject:
         self.image_id = image_id
         self.ds_id = ds_id
 
+        self.sly_ann = sly_ann
 
 
 def get_images_names(path_to_ds):
@@ -87,7 +88,7 @@ def get_objects_list_for_project(req_objects):
 
     for curr_object in req_objects:
         ann = sly.Annotation.from_json(curr_object.annotation,
-                                       sly.ProjectMeta.from_json(api.project.get_meta(id=PROJECT_ID)))
+                                       sly.ProjectMeta.from_json(api.project.get_meta(id=project_id)))
 
         image_as_arr = cv2.imread(curr_object.image_path)
         for label in ann.labels:  # по всем объектам на изображении
@@ -100,7 +101,8 @@ def get_objects_list_for_project(req_objects):
                                 area=label.area,
                                 class_name=label.obj_class.name,
                                 image_id=curr_object.image_id,
-                                ds_id=curr_object.ds_id)
+                                ds_id=curr_object.ds_id,
+                                sly_ann=ann)
             )
 
     return extracted_objects

@@ -1,9 +1,8 @@
+from sly_globals import *
+
 from logger import logger
 
 from supervisely_lib.video_annotation.key_id_map import KeyIdMap
-from init_api import *
-
-from supervisely_lib.annotation.tag_meta import TagValueType
 
 
 class AnnotationKeeper:
@@ -37,7 +36,7 @@ class AnnotationKeeper:
 
     def init_project_remotely(self, project_id=None, project_name='vSynth'):
         if not project_id:
-            self.project = api.project.create(WORKSPACE_ID, project_name, type=sly.ProjectType.VIDEOS,
+            self.project = api.project.create(workspace_id, project_name, type=sly.ProjectType.VIDEOS,
                                               change_name_if_conflict=True)
             self.dataset = api.dataset.create(self.project.id, f'ds_{self.project.id}',
                                               change_name_if_conflict=True)

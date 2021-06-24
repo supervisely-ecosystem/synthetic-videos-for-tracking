@@ -1,6 +1,12 @@
 import imgaug.augmenters as iaa
 
 
+def init_aug_params(state, data):
+    state['useBaseAugs'] = False
+    state['useMinorAugs'] = False
+    state['useFrameAugs'] = False
+
+
 def get_transforms(i):
     div = 0.02 * i  # magic formula for correct transforms
 
@@ -33,3 +39,4 @@ def get_transforms(i):
     ]))
 
     return general_transform, minor_transform, frame_transform
+
