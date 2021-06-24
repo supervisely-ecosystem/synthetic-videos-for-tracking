@@ -8,70 +8,6 @@ import cv2
 
 from time import time
 
-def area(a, b):  # returns None if rectangles don't intersect
-    dx = min(a.xmax, b.xmax) - max(a.xmin, b.xmin)
-    dy = min(a.ymax, b.ymax) - max(a.ymin, b.ymin)
-    if (dx >= 0) and (dy >= 0):
-        return dx * dy
-
-#
-# def calculate_base_coords(added_coords, new_coords, lt=True):
-#     if lt:
-#         x = min(added_coords[0], new_coords[0])
-#         y = min(added_coords[1], new_coords[1])
-#
-#     else:
-#         x = max(added_coords[0], new_coords[0])
-#         y = max(added_coords[1], new_coords[1])
-#
-#     return x, y
-
-
-def compare_overlays_by_rectangles(added_object, curr_object, new_coords):
-    added_mask_shape = added_object.image.shape
-    curr_mask_shape = curr_object.image.shape
-
-    # intersected_mask = calculate_intersection(added_rebased_mask, curr_rebased_mask).astype(int)
-    # intersection_area, added_area = calculate_mask_area(inter_mask=intersected_mask,
-    #                                                     added_mask=added_mask)
-
-    added_area = added_mask_shape[0] * added_mask_shape[1]
-
-    Rectangle = namedtuple('Rectangle', 'xmin ymin xmax ymax')
-
-    ra = Rectangle(added_object.controller.x,
-                   added_object.controller.y,
-                   added_object.controller.x + added_mask_shape[1],
-                   added_object.controller.y + added_mask_shape[0])
-    rb = Rectangle(
-        new_coords[0],
-        new_coords[1],
-        new_coords[0] + curr_mask_shape[1],
-        new_coords[1] + curr_mask_shape[0]
-    )
-
-    intersection_area = area(ra, rb)
-    # print(intersection_area)
-
-    if intersection_area:
-        # logger.debug(f'\nlower object area {added_area}\n'
-        #              f'intersection object area {intersection_area}\n')
-        if (intersection_area / added_area) > added_object.controller.self_overlay:
-
-            return False
-    return True
-
-
-def find_mask_tight_bbox(raw_mask: numpy.ndarray):
-    rows = list(numpy.any(raw_mask, axis=1).tolist())
-    cols = list(numpy.any(raw_mask, axis=0).tolist())
-    top_margin = rows.index(True)
-    bottom_margin = rows[::-1].index(True)
-    left_margin = cols.index(True)
-    right_margin = cols[::-1].index(True)
-    return top_margin, left_margin, \
-           len(rows) - bottom_margin, len(cols) - right_margin
-
 
 class MovementController:
     """
@@ -277,3 +213,51 @@ class MovementController:
     def change_x_direction(self):
         """Изменить направление по X"""
         self.right = self.right * -1
+
+
+def area(a, b):  # returns None if rectangles don't intersect
+    dx = min(a.xmax, b.xmax) - max(a.xmin, b.xmin)
+    dy = min(a.ymax, b.ymax) - max(a.ymin, b.ymin)
+    if (dx >= 0) and (dy >= 0):
+        return dx * dy
+
+
+def compare_overlays_by_rectangles(added_object, curr_object, new_coords):
+    added_mask_shape = added_object.image.shape
+    curr_mask_shape = curr_object.image.shape
+
+    added_area = added_mask_shape[0] * added_mask_shape[1]
+
+    Rectangle = namedtuple('Rectangle', 'xmin ymin xmax ymax')
+
+    ra = Rectangle(added_object.controller.x,
+                   added_object.controller.y,
+                   added_object.controller.x + added_mask_shape[1],
+                   added_object.controller.y + added_mask_shape[0])
+    rb = Rectangle(
+        new_coords[0],
+        new_coords[1],
+        new_coords[0] + curr_mask_shape[1],
+        new_coords[1] + curr_mask_shape[0]
+    )
+
+    intersection_area = area(ra, rb)
+    # print(intersection_area)
+
+    if intersection_area:
+        # logger.debug(f'\nlower object area {added_area}\n'
+        #              f'intersection object area {intersection_area}\n')
+        if (intersection_area / added_area) > added_object.controller.self_overlay:
+            return False
+    return True
+
+
+def find_mask_tight_bbox(raw_mask: numpy.ndarray):
+    rows = list(numpy.any(raw_mask, axis=1).tolist())
+    cols = list(numpy.any(raw_mask, axis=0).tolist())
+    top_margin = rows.index(True)
+    bottom_margin = rows[::-1].index(True)
+    left_margin = cols.index(True)
+    right_margin = cols[::-1].index(True)
+    return top_margin, left_margin, \
+           len(rows) - bottom_margin, len(cols) - right_margin

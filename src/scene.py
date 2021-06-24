@@ -2,13 +2,9 @@ from functions_background import *
 from functions_objects import *
 from functions_video import *
 
+from transformations import get_transforms
+
 from functions_ann_keeper import AnnotationKeeper
-
-from movement_laws import *
-
-import imgaug.augmenters as iaa
-
-import numpy
 
 
 class Scene:
@@ -66,3 +62,52 @@ class Scene:
                 project_id = ann_keeper.project.id
             self.ann_keeper = ann_keeper
 
+
+def process_video(sly_progress, state, is_preview=True):
+    req_objects = state['req_objects']
+    req_backgrounds = state['req_backgrounds']
+
+    _, minor_transform, frame_transform = get_transforms(5)
+
+    background_paths = [curr_background.image_path for curr_background in req_backgrounds]
+
+    custom_scene = Scene(object_general_transforms=None, object_minor_transforms=minor_transform,
+                         frame_transform=frame_transform)
+
+    if is_preview:
+        custom_scene.add_backgrounds([background_paths[random.randint(0, len(background_paths) - 1)]])
+    else:
+        custom_scene.add_backgrounds(background_paths)
+
+    custom_scene.add_objects(req_objects)
+
+    fps = state['fps']
+
+    if is_preview:
+        duration = state['durationPreview']
+    else:
+        duration = state['durationVideo']
+
+    if is_preview:
+        video_path = os.path.join(app.data_dir, './preview.mp4')
+    else:
+        video_path = os.path.join(app.data_dir, f'./{duration}sec_{fps}fps.mp4')
+
+    movement_laws = load_movements_laws(custom_scene=custom_scene,
+                                        req_laws={'linearLaw': state['linearLaw'],
+                                                  'randomLaw': state['randomLaw']})
+
+    custom_scene.generate_video(video_path=video_path,  # generate video
+                                duration=duration,
+                                fps=fps,
+                                movement_laws=movement_laws,
+                                self_overlay=tuple(state['objectOverlayInterval']),
+                                speed_interval=tuple(state['speedInterval']),
+                                project_id=None,
+                                project_name=state["resProjectName"],
+                                upload_ann=False if is_preview else True,
+                                sly_progress=sly_progress
+                                )
+
+    if custom_scene.ann_keeper.project:
+        return custom_scene.ann_keeper.project.id
