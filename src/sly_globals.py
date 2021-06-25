@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import sys
 import supervisely_lib as sly
+import pickle
 
 
 app = sly.AppService()
@@ -38,3 +39,17 @@ ui_sources_dir = os.path.join(source_path, "ui")
 sly.logger.info(f"UI source directory: {ui_sources_dir}")
 sys.path.append(ui_sources_dir)
 sly.logger.info(f"Added to sys.path: {ui_sources_dir}")
+
+
+def dump_req(req_objects, filename):
+    save_path = os.path.join(app.data_dir, 'dumps')
+    os.makedirs(save_path, exist_ok=True)
+    save_path = os.path.join(save_path, filename)
+    with open(save_path, 'wb') as dump_file:
+        pickle.dump(req_objects, dump_file)
+
+
+def load_dumped(filename):
+    load_path = os.path.join(app.data_dir, 'dumps', filename)
+    with open(load_path, 'rb') as dumped:
+        return pickle.load(dumped)

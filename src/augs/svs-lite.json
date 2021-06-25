@@ -83,10 +83,10 @@
                 "order": 1,
                 "cval": 0,
                 "mode": "reflect",
-                "fit_output": false
+                "fit_output": true
             },
-            "sometimes": 0.2,
-            "python": "iaa.Sometimes(0.2, iaa.geometric.Rotate(rotate=(-37, 37), order=1, cval=0, mode='reflect', fit_output=False))"
+            "sometimes": 1,
+            "python": "iaa.Sometimes(1, iaa.geometric.Rotate(rotate=(-37, 37), order=1, cval=0, mode='reflect', fit_output=True))"
         }
     ],
     "random_order": true
