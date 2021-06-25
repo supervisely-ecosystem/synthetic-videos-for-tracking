@@ -1,7 +1,7 @@
 import os
 import supervisely_lib as sly
 
-from ui.augs import init as init_augs
+from ui.augs import init_augs
 
 from sly_globals import *
 from download_data import generate_rows_by_ann

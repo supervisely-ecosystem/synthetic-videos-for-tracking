@@ -7,6 +7,7 @@ import cv2
 
 from functions_objects import get_objects_list_for_project
 from functions_video import add_object_to_background
+from movement_controller import find_mask_tight_bbox
 
 import supervisely_lib as sly
 from sly_globals import *
@@ -42,33 +43,55 @@ augs_py_preview = None
 augs_config_path = None
 
 
-def load_dumped(filename):
-    load_path = os.path.join(app.data_dir, 'dumps', filename)
-    with open(load_path, 'rb') as dumped:
-        return pickle.load(dumped)
+
+@app.callback("base_augs_handler")
+@sly.timeit
+@app.ignore_errors_and_show_dialog_window()
+def base_augs_handler(api: sly.Api, task_id, context, state, app_logger):
+    preview_augs(state, 'Base')
 
 
-@app.callback("preview_base_augs")
+@app.callback("minor_augs_handler")
+@sly.timeit
+@app.ignore_errors_and_show_dialog_window()
+def base_augs_handler(api: sly.Api, task_id, context, state, app_logger):
+    preview_augs(state, 'Minor')
+
+
+@app.callback("frame_augs_handler")
 @sly.timeit
 # @app.ignore_errors_and_show_dialog_window()
-def preview_augs(api: sly.Api, task_id, context, state, app_logger):
-    augmentation_type = 'Base'
+def base_augs_handler(api: sly.Api, task_id, context, state, app_logger):
+    preview_augs(state, 'Frame')
 
+
+
+
+def preview_augs(state, augmentation_type):
     gallery_template = CompareGallery(task_id, api, f"data.gallery{augmentation_type}1", project_meta)
     gallery_custom = CompareGallery(task_id, api, f"data.gallery{augmentation_type}2", project_meta)
 
+    gallery_template._options["syncViews"] = False
+    gallery_template._options["enableZoom"] = False
+    gallery_template._options["opacity"] = 0.2
+    gallery_custom._options["syncViews"] = False
+    gallery_custom._options["enableZoom"] = False
+    gallery_custom._options["opacity"] = 0.2
+
     fields = [
         {"field": f"data.gallery{augmentation_type}1", "payload": gallery_template.to_json()},
-        {"field": f"gallery{augmentation_type}2", "payload": gallery_custom.to_json()},
+        {"field": f"data.gallery{augmentation_type}2", "payload": gallery_custom.to_json()},
     ]
     api.app.set_fields(task_id, fields)
 
     # req_objects = load_dumped(state['req_objects'])
     req_objects = load_dumped('req_object.pkl')  # on debug
-    req_backgrounds = load_dumped('req_backgrounds.pkl')  # on debug
+
+    if augmentation_type == 'Frame':
+        # req_objects = load_dumped(state['req_objects'])
+        req_objects = load_dumped('req_backgrounds.pkl')  # on debug
 
     req_objects = req_objects[random.randint(0, len(req_objects)) - 1]
-    req_backgrounds = req_backgrounds[random.randint(0, len(req_backgrounds)) - 1]
 
     if state[f"augs{augmentation_type}Type"] == "template":
         gallery = gallery_template
@@ -77,42 +100,68 @@ def preview_augs(api: sly.Api, task_id, context, state, app_logger):
         gallery = gallery_custom
         augs_ppl = custom_pipeline
 
-    temp_background = cv2.imread(req_backgrounds.image_path)
-    temp_object = get_objects_list_for_project([req_objects])[0]
-    temp_object.image = cv2.cvtColor(temp_object.image, cv2.COLOR_BGR2RGB)
-    # temp_object.image = cv2.bitwise_and(temp_object.image, temp_object.image,
-    #                                     mask=temp_object.mask.astype(numpy.uint8) * 255)
-
-    center_of_background_x = (temp_background.shape[1] - temp_object.image.shape[1]) / 2
-    center_of_background_y = (temp_background.shape[0] - temp_object.image.shape[0]) / 2
-
-    class_lemon = sly.ObjClass('lemon', sly.Rectangle)
-
-    # Label
-    label_lemon = sly.Label(sly.Rectangle(center_of_background_y, center_of_background_x,
-                                          center_of_background_y + temp_object.image.shape[1],
-                                          center_of_background_x + temp_object.image.shape[0]), class_lemon)
-
-    ann_own = sly.Annotation(temp_background.shape, [label_lemon], 'example annotaion')
-    add_object_to_background(
-        temp_background, temp_object)
+    if augmentation_type == 'Frame':
+        image, ann = get_frame_image(req_objects)
+        ann = sly.Annotation(image.shape)
+    else:
+        image, ann = get_image_and_ann(req_objects)
 
     before_image_path = os.path.join(app.data_dir, "before_preview_augs.jpg")
-    sly.image.write(before_image_path, temp_background)
-
+    sly.image.write(before_image_path, image)
     if api.file.exists(team_id, remote_preview_path.format('before')):
         api.file.remove(team_id, remote_preview_path.format('before'))
     file_info = api.file.upload(team_id, before_image_path, remote_preview_path.format('before'))
-    gallery.set_left("before", file_info.full_storage_url, ann_own)
+    gallery.set_left(f"before shape: [{image.shape[1]}x{image.shape[0]}]",
+                     file_info.full_storage_url, ann)
 
-    _, res_img, res_ann = sly.imgaug_utils.apply(augs_ppl, project_meta, temp_object.image, ann_own)
+    _, res_img, res_ann = sly.imgaug_utils.apply(augs_ppl, project_meta, image, ann)
+
+    if augmentation_type != 'Frame':
+        res_mask = res_ann.labels[0].geometry.data
+
+        t, l, b, r = find_mask_tight_bbox(res_mask)
+
+        div_x = res_ann.labels[0].geometry.origin.col
+        div_y = res_ann.labels[0].geometry.origin.row
+
+        image_aug = res_img[div_y + t:div_y + b, div_x + l:div_x + r]
+        mask_aug = res_mask[t:b, l:r]
+
+        res_ann = res_ann.relative_crop(
+            sly.Rectangle(div_y + t, div_x + l, div_y + b, div_x + r))
+        #
+        res_img = cv2.bitwise_and(image_aug, image_aug,
+                                  mask=mask_aug.astype(numpy.uint8) * 255)
+
     local_image_path = os.path.join(app.data_dir, "after_preview_augs.jpg")
     sly.image.write(local_image_path, res_img)
     if api.file.exists(team_id, remote_preview_path.format('after')):
         api.file.remove(team_id, remote_preview_path.format('after'))
     file_info = api.file.upload(team_id, local_image_path, remote_preview_path.format('after'))
-    gallery.set_right("after", file_info.full_storage_url, res_ann)
+    gallery.set_right(f"after shape: [{res_img.shape[1]}x{res_img.shape[0]}]", file_info.full_storage_url, res_ann)
     gallery.update(options=False)
+
+
+def get_frame_image(req_objects):
+    image_path = req_objects.image_path
+    image = cv2.imread(image_path)
+    return cv2.cvtColor(image, cv2.COLOR_BGR2RGB), None
+
+
+def get_image_and_ann(req_objects):
+    temp_object = get_objects_list_for_project([req_objects])[0]
+    temp_object.image = cv2.cvtColor(temp_object.image, cv2.COLOR_BGR2RGB)
+    temp_object.image = cv2.bitwise_and(temp_object.image, temp_object.image,
+                                        mask=temp_object.mask.astype(numpy.uint8) * 255)
+
+    div_x = temp_object.sly_ann.labels[0].geometry.origin.col
+    div_y = temp_object.sly_ann.labels[0].geometry.origin.row
+
+    ann = temp_object.sly_ann
+    ann = ann.relative_crop(
+        sly.Rectangle(div_y, div_x, div_y + temp_object.image.shape[0] - 1, div_x + temp_object.image.shape[1] - 1))
+
+    return temp_object.image, ann
 
 
 def _load_template(json_path):
@@ -150,13 +199,11 @@ def get_template_by_name(name):
     raise KeyError(f"Template \"{name}\" not found")
 
 
-def init(data, state):
-    state["useAugs"] = True
-    state["augsBaseType"] = "template"
+def init_augs(data, state):
     templates_info, name_to_py = get_aug_templates_list()
+
     data["augTemplates"] = templates_info
     data["augPythonCode"] = name_to_py
-    state["augsBaseTemplateName"] = templates_info[0]["name"]
 
     data["pyViewOptions"] = {
         "mode": 'ace/mode/python',
@@ -165,63 +212,61 @@ def init(data, state):
         "maxLines": 100,
         "highlightActiveLine": False
     }
+    for aug_type in ['Base', 'Minor', 'Frame']:
+        state[f'use{aug_type}Augs'] = False
+        state[f"augs{aug_type}Type"] = "template"
 
-    state["customAugsPath"] = ""  # "/svs-heavy-no-fliplr.json"  # @TODO: for debug
-    data["customAugsPy"] = None
+        state[f"augs{aug_type}TemplateName"] = templates_info[0]["name"]
+        state[f"custom{aug_type}AugsPath"] = ""  # "/svs-heavy-no-fliplr.json"  # @TODO: for debug
+        data[f"custom{aug_type}AugsPy"] = None
 
-    global galleryBase1, galleryBase2, \
-        galleryMinor1, galleryMinor2, \
-        galleryFrame1, galleryFrame2
+        gallery_template = CompareGallery(task_id, api, f"data.gallery{aug_type}1", project_meta)
+        data[f"gallery{aug_type}1"] = gallery_template.to_json()
 
-    galleryBase1 = CompareGallery(task_id, api, "data.galleryBase1", project_meta)
-    data["galleryBase1"] = galleryBase1.to_json()
-    galleryBase2 = CompareGallery(task_id, api, "data.galleryBase2", project_meta)
-    data["galleryBase2"] = galleryBase2.to_json()
-    state["collapsed5"] = True
-    state["disabled5"] = True
-    data["done5"] = False
+        gallery_custom = CompareGallery(task_id, api, f"data.gallery{aug_type}2", project_meta)
+        data[f"gallery{aug_type}2"] = gallery_custom.to_json()
 
 
 def restart(data, state):
-    data["done5"] = False
+    data["done2"] = False
+
+#
+# @app.callback("load_existing_pipeline")
+# @sly.timeit
+# @app.ignore_errors_and_show_dialog_window()
+# def load_existing_pipeline(api: sly.Api, task_id, context, state, app_logger):
+#     global _custom_pipeline_path, custom_pipeline
+#
+#     api.task.set_field(task_id, "data.customAugsPy", None)
+#
+#     remote_path = state["customAugsPath"]
+#     _custom_pipeline_path = os.path.join(app.data_dir, sly.fs.get_file_name_with_ext(remote_path))
+#     api.file.download(team_id, remote_path, _custom_pipeline_path)
+#
+#     custom_pipeline, py_code = _load_template(_custom_pipeline_path)
+#     api.task.set_field(task_id, "data.customAugsPy", py_code)
 
 
-@app.callback("load_existing_pipeline")
-@sly.timeit
-@app.ignore_errors_and_show_dialog_window()
-def load_existing_pipeline(api: sly.Api, task_id, context, state, app_logger):
-    global _custom_pipeline_path, custom_pipeline
-
-    api.task.set_field(task_id, "data.customAugsPy", None)
-
-    remote_path = state["customAugsPath"]
-    _custom_pipeline_path = os.path.join(app.data_dir, sly.fs.get_file_name_with_ext(remote_path))
-    api.file.download(team_id, remote_path, _custom_pipeline_path)
-
-    custom_pipeline, py_code = _load_template(_custom_pipeline_path)
-    api.task.set_field(task_id, "data.customAugsPy", py_code)
-
-
-@app.callback("use_augs")
+@app.callback("apply_augs")
 @sly.timeit
 @app.ignore_errors_and_show_dialog_window()
 def use_augs(api: sly.Api, task_id, context, state, app_logger):
-    global augs_config_path
+    applied_augs = {}
 
-    if state["useAugs"] is True:
-        augs_config_path = os.path.join(train_config.configs_dir, "augs_config.json")
-        sly.json.dump_json_file(augs_json_config, augs_config_path)
+    for aug_type in ['Base', 'Minor', 'Frame']:
 
-        augs_py_path = os.path.join(train_config.configs_dir, "augs_preview.py")
-        with open(augs_py_path, 'w') as f:
-            f.write(augs_py_preview)
-    else:
-        augs_config_path = None
+        if state[f'use{aug_type}Augs']:
+            applied_augs[aug_type] = get_template_by_name(state[f"augs{aug_type}TemplateName"])
+        else:
+            applied_augs[aug_type] = None
+
+    dump_req(applied_augs, 'augmentations.pkl')
 
     fields = [
-        {"field": "data.done5", "payload": True},
-        {"field": "state.collapsed6", "payload": False},
-        {"field": "state.disabled6", "payload": False},
-        {"field": "state.activeStep", "payload": 6},
+        {"field": "data.done2", "payload": True},
+        {"field": "state.collapsed3", "payload": False},
+        {"field": "state.disabled2", "payload": True},
+        {"field": "state.disabled3", "payload": False},
+        {"field": "state.activeStep", "payload": 3},
     ]
     api.app.set_fields(task_id, fields)

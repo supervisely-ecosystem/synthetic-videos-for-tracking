@@ -17,12 +17,6 @@ class RequirementObject:
         self.annotation = annotation
 
 
-def dump_req(req_objects, filename):
-    save_path = os.path.join(app.data_dir, 'dumps')
-    os.makedirs(save_path, exist_ok=True)
-    save_path = os.path.join(save_path, filename)
-    with open(save_path, 'wb') as dump_file:
-        pickle.dump(req_objects, dump_file)
 
 
 def get_project_ann_info(project_id, dataset_names=None, all_ds=False):
@@ -147,7 +141,7 @@ def download_project(api: sly.Api, task_id, context, state, app_logger):
     download_images(req_backgrounds, 'backgrounds', sly_progress)
 
     dump_req(req_objects, 'req_object.pkl')
-    dump_req(req_objects, 'req_backgrounds.pkl')
+    dump_req(req_backgrounds, 'req_backgrounds.pkl')
 
     fields = [
         {"field": "data.step1Loading", "payload": False},
