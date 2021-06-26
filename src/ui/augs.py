@@ -6,10 +6,8 @@ import numpy
 import cv2
 
 from functions_objects import get_objects_list_for_project
-from functions_video import add_object_to_background
 from movement_controller import find_mask_tight_bbox
 
-import supervisely_lib as sly
 from sly_globals import *
 
 from supervisely_lib.app.widgets import CompareGallery
@@ -84,12 +82,12 @@ def preview_augs(state, augmentation_type):
     ]
     api.app.set_fields(task_id, fields)
 
-    # req_objects = load_dumped(state['req_objects'])
-    req_objects = load_dumped('req_object.pkl')  # on debug
+    req_objects = load_dumped(state['req_objects'])
+    # req_objects = load_dumped('req_object.pkl')  # on debug
 
     if augmentation_type == 'Frame':
-        # req_objects = load_dumped(state['req_objects'])
-        req_objects = load_dumped('req_backgrounds.pkl')  # on debug
+        req_objects = load_dumped(state['req_objects'])
+        # req_objects = load_dumped('req_backgrounds.pkl')  # on debug
 
     req_objects = req_objects[random.randint(0, len(req_objects)) - 1]
 
@@ -264,9 +262,11 @@ def use_augs(api: sly.Api, task_id, context, state, app_logger):
 
     fields = [
         {"field": "data.done2", "payload": True},
+        {"field": "state.collapsed2", "payload": True},
         {"field": "state.collapsed3", "payload": False},
         {"field": "state.disabled2", "payload": True},
         {"field": "state.disabled3", "payload": False},
         {"field": "state.activeStep", "payload": 3},
+        {"field": "state.augmentations", "payload": 'augmentations.pkl'}
     ]
     api.app.set_fields(task_id, fields)
