@@ -1,10 +1,36 @@
 import os
 import supervisely_lib as sly
 
-from ui.augs import init_augs
+from augmentations import init_augs
+
+from sly_globals import *
 
 
-from download_data import *
+class SlyProgress:
+    def __init__(self, api, task_id, pbar_element_name):
+        self.api = api
+        self.task_id = task_id
+        self.pbar_element_name = pbar_element_name
+        self.pbar = None
+
+    def refresh_params(self, desc, total):
+        self.pbar = sly.Progress(desc, total)
+        self.refresh_progress()
+
+    def refresh_progress(self):
+        fields = [
+            {"field": f"data.{self.pbar_element_name}", "payload": int(self.pbar.current * 100 / self.pbar.total)},
+            {"field": f"data.{self.pbar_element_name}Message", "payload": self.pbar.message},
+            {"field": f"data.{self.pbar_element_name}Current", "payload": self.pbar.current},
+            {"field": f"data.{self.pbar_element_name}Total", "payload": self.pbar.total},
+        ]
+        self.api.task.set_fields(self.task_id, fields)
+
+    def next_step(self):
+        self.pbar.iter_done_report()
+        self.refresh_progress()
+
+
 
 
 
@@ -16,9 +42,9 @@ def init_input_project(data, state):
 
 
 def init_step_flags(data, state):
-    for step in range(1, 5):
+    for step in range(1, 6):
         data[f'done{step}'] = False
-        state[f"disabled{step}"] = True
+        state[f"disabled{step}"] = False
         data[f"step{step}Loading"] = False
         state[f'collapsed{step}'] = True
 
@@ -65,6 +91,18 @@ def init_output_project(data, state):
     data["dstProjectPreviewUrl"] = None
 
 
+def generate_rows_by_ann(ann_meta):
+    rows = []
+
+    for curr_class in ann_meta['classes']:
+        rows.append({
+            "Name": f"{curr_class['title']}",
+            "Shape": f"{curr_class['shape']}",
+            "Color": f"{curr_class['color']}",
+        })
+
+    return rows
+
 def init_objects_table(data, state):
     columns = [
         {"title": "Name", "subtitle": "label in project"},
@@ -91,7 +129,7 @@ def init_objects_table(data, state):
 
 
 def init_progress_bars(data, state):
-    progress_names = ['1', 'Preview', 'Synth']
+    progress_names = ['DownloadBackgrounds', 'DownloadObjects', 'Preview', 'Synth', '4']
 
     for progress_name in progress_names:
         data[f"progress{progress_name}"] = 0

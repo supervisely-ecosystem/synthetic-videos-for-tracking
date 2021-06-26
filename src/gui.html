@@ -42,10 +42,13 @@
 
     <sly-stepper :active="state.activeStep" >
         <sly-stepper-item>
+            {% include 'src/ui/input_backgrounds.html' %}
+        </sly-stepper-item>
+        <sly-stepper-item>
             {% include 'src/ui/input_objects.html' %}
         </sly-stepper-item>
         <sly-stepper-item>
-            {% include 'src/ui/augs.html' %}
+            {% include 'src/ui/augmentations.html' %}
         </sly-stepper-item>
          <sly-stepper-item>
             {% include 'src/ui/synthesizer.html' %}

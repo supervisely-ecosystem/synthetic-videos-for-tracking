@@ -261,12 +261,10 @@ def use_augs(api: sly.Api, task_id, context, state, app_logger):
     dump_req(applied_augs, 'augmentations.pkl')
 
     fields = [
-        {"field": "data.done2", "payload": True},
-        {"field": "state.collapsed2", "payload": True},
-        {"field": "state.collapsed3", "payload": False},
-        {"field": "state.disabled2", "payload": True},
-        {"field": "state.disabled3", "payload": False},
-        {"field": "state.activeStep", "payload": 3},
+        {"field": "data.done3", "payload": True},
+        {"field": "state.collapsed4", "payload": False},
+        {"field": "state.disabled4", "payload": False},
+        {"field": "state.activeStep", "payload": 4},
         {"field": "state.augmentations", "payload": 'augmentations.pkl'}
     ]
     api.app.set_fields(task_id, fields)

@@ -7,8 +7,9 @@ from transformations import get_transforms
 
 from functions_ann_keeper import AnnotationKeeper
 
-import random
+from init_ui import *
 
+import random
 
 
 class Scene:
@@ -43,6 +44,9 @@ class Scene:
                        project_name='SLYvSynthTest', ds_name='ds_0000',
                        upload_ann=False, sly_progress=None):
 
+        sly_progress_backgrounds = SlyProgress(api, task_id, 'progress4')
+        sly_progress_backgrounds.refresh_params('Video', len(self.backgrounds))
+
         for curr_background in self.backgrounds:
 
             temp_objects = self.objects
@@ -61,22 +65,28 @@ class Scene:
             write_frames_to_file(video_path, fps, frames, video_shape, sly_progress)
 
             if upload_ann:
+                sly_progress.refresh_params('Uploading annotations', 1)
+
                 ann_keeper.init_project_remotely(project_id=project_id, project_name=project_name,
                                                  ds_id=ds_id, ds_name=ds_name)
                 ann_keeper.upload_annotation(video_path)
                 project_id = ann_keeper.project.id
 
+                sly_progress.next_step()
+
             self.ann_keeper = ann_keeper
+
+            sly_progress_backgrounds.next_step()
 
 
 
 def process_video(sly_progress, state, is_preview=True):
-    # req_objects = load_dumped('req_object.pkl')
-    req_objects = load_dumped(state['req_objects'])
-    # req_backgrounds = load_dumped('req_backgrounds.pkl')
-    req_backgrounds = load_dumped(state['req_backgrounds'])
-    # augs = load_dumped('augmentations.pkl')
-    augs = load_dumped(state['augmentations'])
+    req_objects = load_dumped('req_object.pkl')
+    # req_objects = load_dumped(state['req_objects'])
+    req_backgrounds = load_dumped('req_backgrounds.pkl')
+    # req_backgrounds = load_dumped(state['req_backgrounds'])
+    augs = load_dumped('augmentations.pkl')
+    # augs = load_dumped(state['augmentations'])
 
     base_transform, minor_transform, frame_transform = get_transforms(augs)
 
@@ -129,14 +139,12 @@ def process_video(sly_progress, state, is_preview=True):
 @app.callback("apply_synth_settings")
 @sly.timeit
 @app.ignore_errors_and_show_dialog_window()
-def use_augs(api: sly.Api, task_id, context, state, app_logger):
+def apply_synth_settings(api: sly.Api, task_id, context, state, app_logger):
 
     fields = [
-        {"field": "data.done3", "payload": True},
-        {"field": "state.collapsed3", "payload": True},
-        {"field": "state.collapsed4", "payload": False},
-        {"field": "state.disabled3", "payload": True},
-        {"field": "state.disabled4", "payload": False},
-        {"field": "state.activeStep", "payload": 4},
+        {"field": "data.done4", "payload": True},
+        {"field": "state.collapsed5", "payload": False},
+        {"field": "state.disabled5", "payload": False},
+        {"field": "state.activeStep", "payload": 5},
     ]
     api.app.set_fields(task_id, fields)
