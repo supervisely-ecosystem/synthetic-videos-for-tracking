@@ -10,7 +10,6 @@ from download_data import *
 from functions_background import *
 
 
-
 @app.callback("preview")
 @sly.timeit
 def preview(api: sly.Api, task_id, context, state, app_logger):
@@ -63,9 +62,8 @@ def synthesize(api: sly.Api, task_id, context, state, app_logger):
     res_project = api.project.get_info_by_id(res_project_id)  # load full project info
 
     fields = [
-        {"field": "data.step5Loading", "payload": False},
-        {"field": "data.done5", "payload": True},
-
+        {"field": "state.step5Loading", "payload": False},
+        {"field": "state.done5", "payload": True},
 
         {"field": "data.dstProjectId", "payload": res_project.id},
         {"field": "data.dstProjectName", "payload": res_project.name},
@@ -77,9 +75,30 @@ def synthesize(api: sly.Api, task_id, context, state, app_logger):
     # app.stop()
 
 
+@app.callback("restart")
+@sly.timeit
+def restart(api: sly.Api, task_id, context, state, app_logger):
+    data = {}
+
+    init_ui(data, state)
+    restart_from_step = state['restartFrom']
+
+    fields = [
+        {"field": "data", "payload": data, "append": True, "recursive": False},
+        {"field": "state", "payload": state, "append": True, "recursive": False},
+        {"field": "state.restartFrom", "payload": None},
+        {"field": "state.activeStep", "payload": restart_from_step},
+        {"field": f"state.disabled{restart_from_step}", "payload": False},
+        {"field": f"state.collapsed{restart_from_step}", "payload": False},
+    ]
+
+    api.app.set_fields(task_id, fields)
+    api.app.set_field(task_id, "data.scrollIntoView", f"step{restart_from_step}")
+
+
 def main():
     data = {}
-    state = {}
+    state = {'restartFrom': None}
 
     init_ui(data, state)
 

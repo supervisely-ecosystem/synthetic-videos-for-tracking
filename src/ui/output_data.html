@@ -5,7 +5,7 @@
         :disabled="{disabled: state.disabled5, message: 'complete stage 4 to unlock'}"
         :options="{collapsable: true}"
         :collapsed.sync="state.collapsed5"
-        ref="step4" style="width: 100%">
+        ref="step5" style="width: 100%">
 
     <sly-field title="">
         <h3 style="margin-top: 5px">Result project</h3>
@@ -86,14 +86,14 @@
                             (state.dstDatasetMode === 'newDataset' && state.dstDatasetName.length === 0) ||
                             (state.dstDatasetMode === 'existingDataset' && !state.selectedDatasetName)"
 
-                :loading="data.step5Loading"
-                @click="data.step5Loading=true; data.done5=false; command('synthesize')"
+                :loading="state.step5Loading"
+                @click="state.step5Loading=true; state.done5=false; command('synthesize')"
                 v-if="true">
             synthesize
 
 
         </el-button>
-        <div v-if="data.done5">
+        <div v-if="state.done5">
             <div style="margin-top: 15px;">
 
                 <i class="zmdi zmdi-check-circle mr5 mb10 mt10" style="color: #13ce66"></i>
@@ -113,7 +113,7 @@
             </div>
         </div>
 
-        <div v-if="data.step5Loading" class="mt15">
+        <div v-if="state.step5Loading" class="mt15">
             <div>{{ data.progress4Message }}: <b><span
                     style="color: #20a0ff">{{ data.progress4Current }}</span> /
                 {{ data.progress4Total }}</b></div>
@@ -121,7 +121,7 @@
                     :percentage="Math.round(data.progress4Current * 100 / data.progress4Total)"></el-progress>
         </div>
 
-        <div v-if="data.step5Loading" class="mt10">
+        <div v-if="state.step5Loading" class="mt10">
             <div>{{ data.progressSynthMessage }}: <b><span
                     style="color: #20a0ff">{{ data.progressSynthCurrent }}</span> /
                 {{ data.progressSynthTotal }}</b></div>

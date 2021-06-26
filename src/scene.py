@@ -142,9 +142,10 @@ def process_video(sly_progress, state, is_preview=True):
 def apply_synth_settings(api: sly.Api, task_id, context, state, app_logger):
 
     fields = [
-        {"field": "data.done4", "payload": True},
+        {"field": "state.done4", "payload": True},
         {"field": "state.collapsed5", "payload": False},
         {"field": "state.disabled5", "payload": False},
         {"field": "state.activeStep", "payload": 5},
     ]
     api.app.set_fields(task_id, fields)
+    api.app.set_field(task_id, "data.scrollIntoView", f"step{5}")

@@ -21,7 +21,7 @@
                             show-stops
                             :min="1"
                             :max="32"
-                            :disabled="data.done4">
+                            :disabled="state.done4">
                     </el-slider>
                 </div>
             </div>
@@ -36,7 +36,7 @@
                             :min="0"
                             :max="1"
                             :step="0.1"
-                            :disabled="data.done4">
+                            :disabled="state.done4">
 
                     </el-slider>
                 </div>
@@ -46,14 +46,14 @@
             <sly-field style="margin-top: 15px;" title="MovementLaw" description="Select movement law(-s)">
 
                 <div class="fflex align-start">
-                    <el-checkbox v-model="state.linearLaw" class="mt10 mr10" :disabled="data.done4"/>
+                    <el-checkbox v-model="state.linearLaw" class="mt10 mr10" :disabled="state.done4"/>
                     <sly-field class="mt20" title="Linear"
                                description="Move objects by line">
                     </sly-field>
                 </div>
 
                 <div class="fflex align-start">
-                    <el-checkbox v-model="state.randomLaw" class="mt10 mr10" :disabled="data.done4"/>
+                    <el-checkbox v-model="state.randomLaw" class="mt10 mr10" :disabled="state.done4"/>
                     <sly-field class="mt20" title="Random Y"
                                description="Move objects randomly">
                     </sly-field>
@@ -64,7 +64,7 @@
             <div class="mt15 mb15">
                 <div><b>Video FPS</b></div>
                 <el-input-number class="mt5" v-model="state.fps" :min="10" :max="60"
-                                 :disabled="data.done4"></el-input-number>
+                                 :disabled="state.done4"></el-input-number>
             </div>
 
             <div class="mt15 mb15">
@@ -72,7 +72,7 @@
 
                 <div class="fflex">
                     <el-input-number class="mt5" v-model="state.durationVideo" :min="1" :max="999"
-                                     :step="10" :disabled="data.done4"></el-input-number>
+                                     :step="10" :disabled="state.done4"></el-input-number>
                     <h4 class="ml10 mt25">sec</h4>
                 </div>
             </div>
@@ -93,7 +93,7 @@
                         type="primary"
                         @click="state.previewLoading = true; command('preview')"
                         :loading="state.previewLoading"
-                        :disabled="(!state.linearLaw && !state.randomLaw) || data.done4">
+                        :disabled="(!state.linearLaw && !state.randomLaw) || state.done4">
                     <i class="zmdi zmdi-slideshow" style="margin-right: 5px"></i> Preview
                 </el-button>
             </div>
@@ -117,17 +117,17 @@
         </sly-card>
     </div>
     <div>
-        <div class="fflex mt15" v-if="!data.done4">
+        <div class="fflex mt15" v-if="!state.done4">
             <el-button type="primary" class="regular" @click="command('apply_synth_settings')">Apply settings
             </el-button>
         </div>
-        <div v-if="data.done4">
+        <div v-if="state.done4">
             <i class="zmdi zmdi-check-circle mr5 mt10 mb10" style="color: #13ce66"></i>
             <span style="color: #5a6772;">Settings has been successfully defined</span>
         </div>
         <el-button type="warning" class="regular mt10" :plain="true"
                    @click="state.restartFrom=4;"
-                   v-if="data.done4">
+                   v-if="state.done4">
             <i class="zmdi zmdi-rotate-left mr5"></i> reselect
         </el-button>
     </div>

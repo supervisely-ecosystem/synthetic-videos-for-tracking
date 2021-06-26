@@ -113,8 +113,8 @@ def download_project(api: sly.Api, task_id, context, state, app_logger):
     dump_req(req_backgrounds, 'req_backgrounds.pkl')
 
     fields = [
-        {"field": "data.step1Loading", "payload": False},
-        {"field": "data.done1", "payload": True},
+        {"field": "state.step1Loading", "payload": False},
+        {"field": "state.done1", "payload": True},
         {"field": "state.activeStep", "payload": 2},
         {"field": "state.collapsed2", "payload": False},
         {"field": "state.disabled2", "payload": False},
@@ -122,6 +122,7 @@ def download_project(api: sly.Api, task_id, context, state, app_logger):
 
     ]
     api.task.set_fields(task_id, fields)
+    api.app.set_field(task_id, "data.scrollIntoView", f"step{2}")
 
 
 @app.callback("download_objects")
@@ -145,7 +146,7 @@ def download_project(api: sly.Api, task_id, context, state, app_logger):
         app.show_modal_window(f"No objects selected.\nPlease select objects.", level='warning')
 
         fields = [
-            {"field": "data.step2Loading", "payload": False},
+            {"field": "state.step2Loading", "payload": False},
         ]
 
     else:
@@ -155,13 +156,14 @@ def download_project(api: sly.Api, task_id, context, state, app_logger):
         dump_req(req_objects, 'req_object.pkl')
 
         fields = [
-            {"field": "data.step2Loading", "payload": False},
-            {"field": "data.done2", "payload": True},
+            {"field": "state.step2Loading", "payload": False},
+            {"field": "state.done2", "payload": True},
             {"field": "state.activeStep", "payload": 3},
             {"field": "state.collapsed3", "payload": False},
             {"field": "state.disabled3", "payload": False},
             {"field": "state.req_objects", "payload": 'req_object.pkl'},
 
         ]
+        api.app.set_field(task_id, "data.scrollIntoView", f"step{3}")
 
     api.task.set_fields(task_id, fields)
