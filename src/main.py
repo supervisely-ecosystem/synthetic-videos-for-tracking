@@ -3,15 +3,11 @@ import numpy
 import sys
 
 from sly_globals import *
-
 from init_ui import *
-
 from scene import *
-from pathlib import Path
 from download_data import *
-from transformations import get_transforms
+
 from functions_background import *
-from movement_laws import *
 
 
 class SlyProgress:
@@ -40,6 +36,7 @@ class SlyProgress:
 
 
 
+
 @app.callback("preview")
 @sly.timeit
 def preview(api: sly.Api, task_id, context, state, app_logger):
@@ -58,7 +55,12 @@ def preview(api: sly.Api, task_id, context, state, app_logger):
     remote_video_path = os.path.join(f"/SLYvSynth/{task_id}", "preview.mp4")
     if api.file.exists(team_id, remote_video_path):
         api.file.remove(team_id, remote_video_path)
+
+    sly_progress.refresh_params('Uploading video', 1)
+
     file_info = api.file.upload(team_id, video_path, remote_video_path)
+
+    sly_progress.next_step()
 
     fields = [
         {"field": "data.videoUrl", "payload": file_info.full_storage_url},
@@ -67,23 +69,39 @@ def preview(api: sly.Api, task_id, context, state, app_logger):
     api.task.set_fields(task_id, fields)
 
 
+def reset_output_headers_by_state(state):
+    if state["dstProjectMode"] == "newProject":
+        state["dstProjectId"] = None
+
+    if state["dstDatasetMode"] == "newDataset":
+        state["selectedDatasetName"] = None
+
+
 @app.callback("synthesize")
 @sly.timeit
 def synthesize(api: sly.Api, task_id, context, state, app_logger):
     sly_progress = SlyProgress(api, task_id, 'progressSynth')
 
-    res_project = process_video(sly_progress, state, is_preview=False)
+    reset_output_headers_by_state(state)
+
+    res_project_id = process_video(sly_progress, state, is_preview=False)
+
+    res_project = api.project.get_info_by_id(res_project_id)  # load full project info
 
     fields = [
-        {"field": "data.started", "payload": False},
-        {"field": "data.resProjectId", "payload": res_project.id},
-        {"field": "data.resProjectName", "payload": res_project.name},
-        {"field": "data.resProjectPreviewUrl",
+
+        {"field": "data.step4Loading", "payload": False},
+        {"field": "data.done4", "payload": True},
+
+
+        {"field": "data.dstProjectId", "payload": res_project.id},
+        {"field": "data.dstProjectName", "payload": res_project.name},
+        {"field": "data.dstProjectPreviewUrl",
          "payload": api.image.preview_url(res_project.reference_image_url, 100, 100)},
     ]
     api.task.set_fields(task_id, fields)
     api.task.set_output_project(task_id, res_project.id, res_project.name)
-    app.stop()
+    # app.stop()
 
 
 def main():

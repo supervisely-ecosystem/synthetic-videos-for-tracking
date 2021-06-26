@@ -147,6 +147,8 @@ def download_project(api: sly.Api, task_id, context, state, app_logger):
         {"field": "data.step1Loading", "payload": False},
         {"field": "data.done1", "payload": True},
         {"field": "state.activeStep", "payload": 2},
+        {"field": "state.collapsed1", "payload": True},
+        {"field": "state.collapsed2", "payload": False},
         {"field": "state.disabled1", "payload": True},
         {"field": "state.disabled2", "payload": False},
         {"field": "state.req_objects", "payload": 'req_object.pkl'},

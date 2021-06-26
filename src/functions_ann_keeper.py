@@ -34,14 +34,22 @@ class AnnotationKeeper:
 
         self.figures.append(temp_figures)
 
-    def init_project_remotely(self, project_id=None, project_name='vSynth'):
+    def init_project_remotely(self, project_id=None, ds_id=None,
+                              project_name='vSynthTest', ds_name='ds_0000'):
         if not project_id:
             self.project = api.project.create(workspace_id, project_name, type=sly.ProjectType.VIDEOS,
                                               change_name_if_conflict=True)
-            self.dataset = api.dataset.create(self.project.id, f'ds_{self.project.id}',
+        else:
+            self.project = api.project.get_info_by_id(project_id)
+
+        if not ds_id:
+            self.dataset = api.dataset.create(self.project.id, f'{ds_name}',
                                               change_name_if_conflict=True)
         else:
-            self.dataset = api.dataset.get_list(project_id)[0]
+            for dataset in api.dataset.get_list(project_id):
+                if dataset.name == ds_id:
+                    self.dataset = dataset
+                    break
 
         self.meta = sly.ProjectMeta(obj_classes=sly.ObjClassCollection(self.get_unique_objects(self.sly_objects_list)))
 

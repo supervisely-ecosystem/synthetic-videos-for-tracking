@@ -1,0 +1,179 @@
+<!-- <sly-card class="mt15"
+          title="Output Project"
+          subtitle="Define result project name, press Run and monitor progress"
+          :disabled="{disabled: state.disabled4, message: 'complete stage 3 to unlock'}"
+          :options="{collapsable: true}"
+          :collapsed.sync="state.collapsed4"
+          ref="step4" style="width: 100%"
+>
+    <sly-field title="Result project name">
+        <el-input v-model="state.resProjectName"></el-input>
+        <el-button class="mt10" type="primary" :loading="data.started"
+                   :disabled="data.resProjectId || !state.bgProjectId"
+                   @click="data.started = true; command('synthesize')">
+            Synthesize
+        </el-button>
+    </sly-field>
+
+    <div style="margin-top: 30px;">
+        <sly-field class="mt15"
+                   v-if="data.resProjectId && !data.started"
+                   title="New project has been created"
+                   description="Synthesize configuration is saved in project info (metadata) as json">
+            <sly-field title="" description="Project">
+                <a slot="title" target="_blank"
+                   :href="`/projects/${data.resProjectId}/datasets`">{{ data.resProjectName }}</a>
+                <sly-icon slot="icon" :options="{ imageUrl: `${data.resProjectPreviewUrl}` }"/>
+            </sly-field>
+        </sly-field>
+    </div>
+    <div class="fflex mt10" v-if="data.started === true">
+        <div class="mr10" style="width: 120px;">{{ data.progressSynthMessage }}:</div>
+        <el-progress class="mt10" v-if="data.started === true" :percentage="data.progressSynth"
+                     style="flex: 1"></el-progress>
+        <div class="ml10" style="flex: none;">[{{ data.progressSynthCurrent }} / {{ data.progressSynthTotal }}]
+        </div>
+    </div>
+</sly-card> -->
+
+<sly-card
+        class="mb15"
+        title="Output Project"
+        subtitle="Define result project name, press Run and monitor progress"
+        :disabled="{disabled: state.disabled4, message: 'complete stage 3 to unlock'}"
+        :options="{collapsable: true}"
+        :collapsed.sync="state.collapsed4"
+        ref="step4" style="width: 100%">
+
+    <sly-field title="Result project">
+        <div class="fflex">
+
+            <el-radio class="radio"
+                      v-model="state.dstProjectMode"
+                      label="newProject"
+                      @input="(val) => {
+                            if (val === 'newProject') {
+                                state.dstDatasetMode = 'newDataset';
+                            }
+                          }"
+            >
+                Create new project
+            </el-radio>
+            <el-radio class="radio" v-model="state.dstProjectMode" label="existingProject">Add to existing project
+            </el-radio>
+        </div>
+        <div class="mt5">
+            <div v-if="state.dstProjectMode === 'newProject'">
+                <el-input placeholder="Please input project name" v-model="state.dstProjectName"></el-input>
+                <div class="mt5" style="color: #5a6772">
+                    <i>If project with the same name already exists, a new name will be generated automatically</i>
+                </div>
+            </div>
+            <div v-if="state.dstProjectMode === 'existingProject'">
+                <sly-select-project
+                        :workspace-id="data.workspaceId"
+                        :project-id.sync="state.dstProjectId"
+                        :options="{showLabel: false, availableTypes: ['videos']}"
+                >
+                </sly-select-project>
+            </div>
+        </div>
+    </sly-field>
+    <sly-field title="Result dataset"
+    >
+        <div class="fflex">
+            <el-radio class="radio" v-model="state.dstDatasetMode" label="newDataset">Create new dataset</el-radio>
+            <el-radio class="radio"
+                      v-model="state.dstDatasetMode"
+                      label="existingDataset"
+                      :disabled="state.dstProjectMode === 'newProject'">
+                Add to existing dataset
+            </el-radio>
+        </div>
+        <div class="mt5">
+            <div v-if="state.dstDatasetMode === 'newDataset'">
+                <el-input placeholder="Please input dataset name" v-model="state.dstDatasetName"></el-input>
+                <div class="mt5" style="color: #5a6772">
+                    <i>If dataset with the same name already exists, a new name will be generated automatically</i>
+                </div>
+            </div>
+            <div v-if="state.dstDatasetMode === 'existingDataset'">
+                <sly-select-dataset
+                        :project-id="state.dstProjectId"
+                        :datasets.sync="state.selectedDatasetName"
+                        :options="{showLabel: false}"
+                >
+                </sly-select-dataset>
+            </div>
+        </div>
+    </sly-field>
+
+
+    <div class="mt5" v-if="state.dstProjectMode === 'newProject' && state.dstProjectName.length === 0"
+         style="color: red">
+        Please, define the name of a new project
+    </div>
+    <div class="mt5" v-if="state.dstProjectMode === 'existingProject' && !state.dstProjectId" style="color: red">
+        Please, select one of the existing projects
+    </div>
+    <div class="mt5" v-if="state.dstDatasetMode === 'newDataset' && state.dstDatasetName.length === 0"
+         style="color: red">
+        Please, define the name of a new dataset
+    </div>
+    <div class="mt5" v-if="state.dstDatasetMode === 'existingDataset' && !state.selectedDatasetName" style="color: red">
+        Please, select one of the existing datasets
+    </div>
+
+    <div v-if="data.progressName1" class="mt10">
+        <div>{{ data.progressName1 }}: {{ data.currentProgressLabel1 }} / {{ data.totalProgressLabel1 }}</div>
+        <el-progress :percentage="Math.round(data.currentProgress1 * 100 / data.totalProgress1)"></el-progress>
+    </div>
+    <div v-if="data.progressName2" class="mt10">
+        <div>{{ data.progressName2 }}: <b><span style="color: #20a0ff">{{ data.currentProgressLabel2 }}</span> /
+            {{ data.totalProgressLabel2 }}</b></div>
+        <el-progress :percentage="Math.round(data.currentProgress2 * 100 / data.totalProgress2)"></el-progress>
+    </div>
+</sly-card>
+
+
+<div class="fflex mt15 mb15" v-if="data.done3" style="width: 100%;">
+    <sly-card style="width: 100%;">
+        <div>
+            <el-button
+                    type="primary"
+                    class="regular"
+                    :disabled="false"
+                    :loading="data.step4Loading"
+                    @click="data.step4Loading=true; command('synthesize')"
+                    v-if="true">
+                synthesize
+
+
+            </el-button>
+            <div v-if="data.done4">
+                <div style="margin-top: 30px;">
+                    <sly-field class="mt15"
+                               v-if="data.dstProjectId"
+                               title="Project preview"
+                               description="Synthesize configuration is saved in project info (metadata) as json">
+                        <sly-field title="" description="Project">
+                            <a slot="title" target="_blank"
+                               :href="`/projects/${data.dstProjectId}/datasets`">{{ data.dstProjectName }}</a>
+                            <sly-icon slot="icon" :options="{ imageUrl: `${data.dstProjectPreviewUrl}` }"/>
+                        </sly-field>
+                    </sly-field>
+                </div>
+                <i class="zmdi zmdi-check-circle mr5" style="color: #13ce66"></i>
+                <span style="color: #5a6772;">Synthesize completed</span>
+            </div>
+
+            <div class="fflex mt10" v-if="data.step4Loading">
+                <div class="mr10" style="width: 120px;">{{ data.progressSynthMessage }}:</div>
+                <el-progress class="mt10" :percentage="data.progressSynth"
+                             style="flex: 1"></el-progress>
+                <div class="ml10" style="flex: none;">[{{ data.progressSynthCurrent }} / {{ data.progressSynthTotal }}]
+                </div>
+            </div>
+        </div>
+    </sly-card>
+</div>

@@ -1,10 +1,14 @@
 from functions_background import *
 from functions_objects import *
 from functions_video import *
+from movement_laws import *
 
 from transformations import get_transforms
 
 from functions_ann_keeper import AnnotationKeeper
+
+import random
+
 
 
 class Scene:
@@ -35,7 +39,8 @@ class Scene:
 
     def generate_video(self, video_path, fps, duration, movement_laws, self_overlay,
                        speed_interval,
-                       project_id=None, project_name='SLYvSynth',
+                       project_id=None, ds_id=None,
+                       project_name='SLYvSynthTest', ds_name='ds_0000',
                        upload_ann=False, sly_progress=None):
 
         for curr_background in self.backgrounds:
@@ -56,22 +61,28 @@ class Scene:
             write_frames_to_file(video_path, fps, frames, video_shape, sly_progress)
 
             if upload_ann:
-                ann_keeper.init_project_remotely(project_id=project_id, project_name=project_name)
+                ann_keeper.init_project_remotely(project_id=project_id, project_name=project_name,
+                                                 ds_id=ds_id, ds_name=ds_name)
                 ann_keeper.upload_annotation(video_path)
-
                 project_id = ann_keeper.project.id
+
             self.ann_keeper = ann_keeper
 
 
-def process_video(sly_progress, state, is_preview=True):
-    req_objects = state['req_objects']
-    req_backgrounds = state['req_backgrounds']
 
-    _, minor_transform, frame_transform = get_transforms(5)
+def process_video(sly_progress, state, is_preview=True):
+    # req_objects = load_dumped('req_object.pkl')
+    req_objects = load_dumped(state['req_objects'])
+    # req_backgrounds = load_dumped('req_backgrounds.pkl')
+    req_backgrounds = load_dumped(state['req_backgrounds'])
+    # augs = load_dumped('augmentations.pkl')
+    augs = load_dumped(state['augmentations'])
+
+    base_transform, minor_transform, frame_transform = get_transforms(augs)
 
     background_paths = [curr_background.image_path for curr_background in req_backgrounds]
 
-    custom_scene = Scene(object_general_transforms=None, object_minor_transforms=minor_transform,
+    custom_scene = Scene(object_general_transforms=base_transform, object_minor_transforms=minor_transform,
                          frame_transform=frame_transform)
 
     if is_preview:
@@ -103,11 +114,29 @@ def process_video(sly_progress, state, is_preview=True):
                                 movement_laws=movement_laws,
                                 self_overlay=tuple(state['objectOverlayInterval']),
                                 speed_interval=tuple(state['speedInterval']),
-                                project_id=None,
-                                project_name=state["resProjectName"],
+                                project_name=state["dstProjectName"],
+                                ds_name=state["dstDatasetName"],
+                                project_id=state["dstProjectId"],
+                                ds_id=state["selectedDatasetName"],
                                 upload_ann=False if is_preview else True,
                                 sly_progress=sly_progress
                                 )
 
     if custom_scene.ann_keeper.project:
         return custom_scene.ann_keeper.project.id
+
+
+@app.callback("apply_synth_settings")
+@sly.timeit
+@app.ignore_errors_and_show_dialog_window()
+def use_augs(api: sly.Api, task_id, context, state, app_logger):
+
+    fields = [
+        {"field": "data.done3", "payload": True},
+        {"field": "state.collapsed3", "payload": True},
+        {"field": "state.collapsed4", "payload": False},
+        {"field": "state.disabled3", "payload": True},
+        {"field": "state.disabled4", "payload": False},
+        {"field": "state.activeStep", "payload": 4},
+    ]
+    api.app.set_fields(task_id, fields)

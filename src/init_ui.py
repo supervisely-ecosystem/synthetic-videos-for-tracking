@@ -3,8 +3,9 @@ import supervisely_lib as sly
 
 from ui.augs import init_augs
 
-from sly_globals import *
-from download_data import generate_rows_by_ann
+
+from download_data import *
+
 
 
 def init_input_project(data, state):
@@ -15,15 +16,21 @@ def init_input_project(data, state):
 
 
 def init_step_flags(data, state):
-    for step in range(1, 3):
+    for step in range(1, 5):
         data[f'done{step}'] = False
-        state[f"disabled{step}"] = False  # while debuggin
+        state[f"disabled{step}"] = True
         data[f"step{step}Loading"] = False
+        state[f'collapsed{step}'] = True
+
+    state[f'collapsed1'] = False
+    state[f'disabled1'] = False
 
 
 def init_settings(data, state):
     state["activeStep"] = 1
-    state["activeStepAug"] = 1
+
+    data["videoUrl"] = None
+    state["previewLoading"] = False
 
     state["bgTeamId"] = None
     state["bgWorkspaceId"] = None
@@ -35,20 +42,27 @@ def init_settings(data, state):
     state["objectOverlayInterval"] = [0.4, 0.6]
     state["linearLaw"] = True
     state["randomLaw"] = True
-    state["fps"] = 25
+    # state["fps"] = 25
+    state["fps"] = 10
 
     state["durationPreview"] = 1
-    state["durationVideo"] = 60
+    # state["durationVideo"] = 60
+    state["durationVideo"] = 1
 
 
-def init_res_project(data, state):
-    data["videoUrl"] = None
+def init_output_project(data, state):
+    state["dstProjectMode"] = "newProject"
+    state["dstProjectName"] = "my_videos"
+    state["dstProjectId"] = None
 
-    data["resProjectId"] = None
-    state["resProjectName"] = f"synthesized_{project_info.name}_{state['fps']}fps"
-    data["resProjectName"] = None
-    data["resProjectPreviewUrl"] = None
-    data["started"] = False
+    state["dstDatasetMode"] = "newDataset"
+    state["dstDatasetName"] = "my_dataset"
+    state["selectedDatasetName"] = None
+
+    data["workspaceId"] = workspace_id
+
+
+    data["dstProjectPreviewUrl"] = None
 
 
 def init_objects_table(data, state):
@@ -89,8 +103,6 @@ def init_progress_bars(data, state):
 def init_ui(data, state):
     init_step_flags(data, state)
 
-    init_settings(data, state)
-
     init_progress_bars(data, state)
 
     init_input_project(data, state)  # step 1
@@ -98,5 +110,7 @@ def init_ui(data, state):
 
     init_augs(data, state)  # step 2
 
-    init_res_project(data, state)  # step N
+    init_settings(data, state)  # step 3
+
+    init_output_project(data, state)  # step 4
 
