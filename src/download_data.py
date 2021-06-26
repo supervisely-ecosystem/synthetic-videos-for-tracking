@@ -4,9 +4,7 @@ import random
 import json
 import pickle
 
-from main import SlyProgress
-
-
+from init_ui import *
 
 
 class RequirementObject:
@@ -32,17 +30,6 @@ def get_project_ann_info(project_id, dataset_names=None, all_ds=False):
 
     return ann_infos
 
-def generate_rows_by_ann(ann_meta):
-    rows = []
-
-    for curr_class in ann_meta['classes']:
-        rows.append({
-            "Name": f"{curr_class['title']}",
-            "Shape": f"{curr_class['shape']}",
-            "Color": f"{curr_class['color']}",
-        })
-
-    return rows
 
 
 def download_images(req_objects, subdir, sly_progress):
@@ -110,18 +97,41 @@ def get_list_req_backgrounds(backgrounds_ann_info, state):
     return req_backgrounds
 
 
-@app.callback("download_project")
+@app.callback("download_backgrounds")
 @sly.timeit
 def download_project(api: sly.Api, task_id, context, state, app_logger):
-    fields = [
-        {"field": "data.step1Loading", "payload": True},
-    ]
+    sly_progress = SlyProgress(api, task_id, 'progressDownloadBackgrounds')
+    sly_progress.refresh_params("Downloading meta", 1)
+    backgrounds_ann_info = get_project_ann_info(project_id=state['bgProjectId'],
+                                                dataset_names=state['bgDatasets'],
+                                                all_ds=state['allDatasets'])
 
+    sly_progress.next_step()
+
+    req_backgrounds = get_list_req_backgrounds(backgrounds_ann_info, state)
+    download_images(req_backgrounds, 'backgrounds', sly_progress)
+    dump_req(req_backgrounds, 'req_backgrounds.pkl')
+
+    fields = [
+        {"field": "data.step1Loading", "payload": False},
+        {"field": "data.done1", "payload": True},
+        {"field": "state.activeStep", "payload": 2},
+        {"field": "state.collapsed2", "payload": False},
+        {"field": "state.disabled2", "payload": False},
+        {"field": "state.req_backgrounds", "payload": 'req_backgrounds.pkl'}
+
+    ]
     api.task.set_fields(task_id, fields)
 
-    sly_progress = SlyProgress(api, task_id, 'progress1')
 
-    sly_progress.refresh_params("Downloading annotations", 2)
+@app.callback("download_objects")
+@sly.timeit
+@app.ignore_errors_and_show_dialog_window()
+def download_project(api: sly.Api, task_id, context, state, app_logger):
+
+    sly_progress = SlyProgress(api, task_id, 'progressDownloadObjects')
+
+    sly_progress.refresh_params("Downloading annotations", 1)
 
     objects_ann_info = get_project_ann_info(project_id=project_id,
                                             dataset_names=None,
@@ -129,31 +139,29 @@ def download_project(api: sly.Api, task_id, context, state, app_logger):
 
     sly_progress.next_step()
 
-    backgrounds_ann_info = get_project_ann_info(project_id=state['bgProjectId'],
-                                                dataset_names=state['bgDatasets'],
-                                                all_ds=state['allDatasets'])
+    req_objects = get_list_req_objects(objects_ann_info, state)
 
-    sly_progress.next_step()
+    if len(req_objects) == 0:
+        app.show_modal_window(f"No objects selected.\nPlease select objects.", level='warning')
 
-    req_objects = get_list_req_objects(objects_ann_info, state)  # init scene
-    req_backgrounds = get_list_req_backgrounds(backgrounds_ann_info, state)
-    download_images(req_objects, 'objects', sly_progress)
-    download_images(req_backgrounds, 'backgrounds', sly_progress)
+        fields = [
+            {"field": "data.step2Loading", "payload": False},
+        ]
 
-    dump_req(req_objects, 'req_object.pkl')
-    dump_req(req_backgrounds, 'req_backgrounds.pkl')
+    else:
 
-    fields = [
-        {"field": "data.step1Loading", "payload": False},
-        {"field": "data.done1", "payload": True},
-        {"field": "state.activeStep", "payload": 2},
-        {"field": "state.collapsed1", "payload": True},
-        {"field": "state.collapsed2", "payload": False},
-        {"field": "state.disabled1", "payload": True},
-        {"field": "state.disabled2", "payload": False},
-        {"field": "state.req_objects", "payload": 'req_object.pkl'},
-        {"field": "state.req_backgrounds", "payload": 'req_backgrounds.pkl'}
+        download_images(req_objects, 'objects', sly_progress)
 
-    ]
+        dump_req(req_objects, 'req_object.pkl')
+
+        fields = [
+            {"field": "data.step2Loading", "payload": False},
+            {"field": "data.done2", "payload": True},
+            {"field": "state.activeStep", "payload": 3},
+            {"field": "state.collapsed3", "payload": False},
+            {"field": "state.disabled3", "payload": False},
+            {"field": "state.req_objects", "payload": 'req_object.pkl'},
+
+        ]
 
     api.task.set_fields(task_id, fields)

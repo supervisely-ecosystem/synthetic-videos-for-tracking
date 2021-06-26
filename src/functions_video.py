@@ -157,11 +157,15 @@ def write_frames_to_file(video_name, fps, frames, video_shape, sly_progress=None
 
     for frame in tqdm(frames, desc='Generating video file: '):
         video.write(frame)
-
         if sly_progress:
             sly_progress.next_step()
 
+    if sly_progress:
+        sly_progress.refresh_params('Saving video file', 1)
+
     video.release()
 
+    if sly_progress:
+        sly_progress.next_step()
 
 
