@@ -31,21 +31,32 @@ class SlyProgress:
         self.refresh_progress()
 
 
-
-
-
 def init_input_project(data, state):
     data["projectId"] = project_info.id
     data["projectName"] = project_info.name
     data["projectPreviewUrl"] = api.image.preview_url(project_info.reference_image_url, 100, 100)
     data["projectItemsCount"] = project_info.items_count
 
+    state["bgTeamId"] = None
+    state["bgWorkspaceId"] = None
+    state["bgProjectId"] = None
+    state["bgDatasets"] = []
+    state["allDatasets"] = True
+
+
+
 
 def init_step_flags(data, state):
-    for step in range(1, 6):
-        data[f'done{step}'] = False
-        state[f"disabled{step}"] = False
-        data[f"step{step}Loading"] = False
+
+    if state['restartFrom']:
+        start_step = state['restartFrom']
+    else:
+        start_step = 1
+
+    for step in range(start_step, 6):
+        state[f'done{step}'] = False
+        state[f"step{step}Loading"] = False
+        state[f"disabled{step}"] = True
         state[f'collapsed{step}'] = True
 
     state[f'collapsed1'] = False
@@ -57,12 +68,6 @@ def init_settings(data, state):
 
     data["videoUrl"] = None
     state["previewLoading"] = False
-
-    state["bgTeamId"] = None
-    state["bgWorkspaceId"] = None
-    state["bgProjectId"] = None
-    state["bgDatasets"] = []
-    state["allDatasets"] = True
 
     state["speedInterval"] = [5, 20]
     state["objectOverlayInterval"] = [0.4, 0.6]
@@ -87,7 +92,6 @@ def init_output_project(data, state):
 
     data["workspaceId"] = workspace_id
 
-
     data["dstProjectPreviewUrl"] = None
 
 
@@ -102,6 +106,7 @@ def generate_rows_by_ann(ann_meta):
         })
 
     return rows
+
 
 def init_objects_table(data, state):
     columns = [
@@ -138,17 +143,30 @@ def init_progress_bars(data, state):
         data[f"progress{progress_name}Total"] = 0
 
 
+def init_interface_by_step(data, state):
+    if state['restartFrom']:
+        start_step = state['restartFrom']
+    else:
+        start_step = 1
+
+    for curr_step in range(start_step, 6):
+        if curr_step == 1:
+            init_input_project(data, state)  # step 1
+            init_objects_table(data, state)
+        if curr_step == 2:
+            init_augs(data, state)  # step 2
+        if curr_step == 3:
+            init_settings(data, state)  # step 3
+        if curr_step == 4:
+            init_output_project(data, state)  # step 4
+
+
 def init_ui(data, state):
+
+
     init_step_flags(data, state)
 
     init_progress_bars(data, state)
 
-    init_input_project(data, state)  # step 1
-    init_objects_table(data, state)
-
-    init_augs(data, state)  # step 2
-
-    init_settings(data, state)  # step 3
-
-    init_output_project(data, state)  # step 4
+    init_interface_by_step(data, state)
 

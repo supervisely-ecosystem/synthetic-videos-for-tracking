@@ -4,21 +4,23 @@
           :options="{collapsable: true}"
           :collapsed.sync="state.collapsed3"
           :disabled="{disabled: state.disabled3, message: 'complete stage 2 to unlock'}"
-          ref="step1" style="width: 100%"
+          ref="step3" style="width: 100%"
 >
 
 
     <div>
         <div class="fflex mt10 mb10">
             <el-switch v-model="state.useBaseAugs" on-text=""
-                       off-text=""></el-switch>
+                       off-text=""
+                       :disabled="state.done3"
+            ></el-switch>
             <h4 class="ml10 mb15 mt15">Base</h4>
             <p>&nbsp;(creates a set of base primitives)</p>
         </div>
         <el-tabs type="border-card" class="el-tabs-cards mt10" v-model="state.augsBaseType"
                  v-if="state.useBaseAugs">
             <el-tab-pane name="template">
-                <el-radio slot="label" v-model="state.augsBaseType" label="template" :disabled="data.done2_1">
+                <el-radio slot="label" v-model="state.augsBaseType" label="template" :disabled="state.done2_1">
                     Default templates
                 </el-radio>
                 <sly-field title="Template">
@@ -28,7 +30,8 @@
                                 v-for="item in data.augTemplates"
                                 :key="item.name"
                                 :label="item.name"
-                                :value="item.name">
+                                :value="item.name"
+                        :disabled="state.done3">
                         </el-option>
                     </el-select>
                 </sly-field>
@@ -110,14 +113,15 @@
 
         <div class="fflex mt10 mb10">
             <el-switch v-model="state.useMinorAugs" on-text=""
-                       off-text=""></el-switch>
+                       off-text=""
+                       :disabled="state.done3"></el-switch>
             <h4 class="ml10 mb15 mt15">Minor</h4>
             <p>&nbsp;(applied to base primitives on every frame)</p>
         </div>
         <el-tabs type="border-card" class="el-tabs-cards mt10" v-model="state.augsMinorType"
                  v-if="state.useMinorAugs">
             <el-tab-pane name="template">
-                <el-radio slot="label" v-model="state.augsMinorType" label="template" :disabled="data.done2_1">
+                <el-radio slot="label" v-model="state.augsMinorType" label="template" :disabled="state.done2_1">
                     Default templates
                 </el-radio>
                 <sly-field title="Template">
@@ -127,7 +131,8 @@
                                 v-for="item in data.augTemplates"
                                 :key="item.name"
                                 :label="item.name"
-                                :value="item.name">
+                                :value="item.name"
+                        :disabled="state.done3">
                         </el-option>
                     </el-select>
                 </sly-field>
@@ -207,14 +212,15 @@
 
         <div class="fflex mt10 mb10">
             <el-switch v-model="state.useFrameAugs" on-text=""
-                       off-text=""></el-switch>
+                       off-text=""
+                       :disabled="state.done3"></el-switch>
             <h4 class="ml10 mb15 mt15">Frame</h4>
             <p>&nbsp;(applied to whole frame)</p>
         </div>
         <el-tabs type="border-card" class="el-tabs-cards mt10" v-model="state.augsFrameType"
                  v-if="state.useFrameAugs">
             <el-tab-pane name="template">
-                <el-radio slot="label" v-model="state.augsFrameType" label="template" :disabled="data.done2_1">
+                <el-radio slot="label" v-model="state.augsFrameType" label="template" :disabled="state.done2_1">
                     Default templates
                 </el-radio>
                 <sly-field title="Template">
@@ -224,7 +230,8 @@
                                 v-for="item in data.augTemplates"
                                 :key="item.name"
                                 :label="item.name"
-                                :value="item.name">
+                                :value="item.name"
+                        :disabled="state.done3">
                         </el-option>
                     </el-select>
                 </sly-field>
@@ -297,17 +304,17 @@
         </el-tabs>
     </div>
     <div>
-        <div class="fflex mt10" v-if="!data.done3">
+        <div class="fflex mt10" v-if="!state.done3">
             <el-button type="primary" class="regular" @click="command('apply_augs')">Apply augmentations
             </el-button>
         </div>
-        <div v-if="data.done3">
-            <i class="zmdi zmdi-check-circle mr5 mt10 mb10" style="color: #13ce66"></i>
+        <div v-if="state.done3">
+            <i class="zmdi zmdi-check-circle mr5 mt15 mb10" style="color: #13ce66"></i>
             <span style="color: #5a6772;">Augmentations has been successfully defined</span>
         </div>
         <el-button type="warning" class="regular mt10" :plain="true"
                    @click="state.restartFrom=3;"
-                   v-if="data.done3">
+                   v-if="state.done3">
             <i class="zmdi zmdi-rotate-left mr5"></i> reselect
         </el-button>
     </div>
