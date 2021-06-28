@@ -56,8 +56,8 @@ def init_step_flags(data, state):
     for step in range(start_step, 6):
         state[f'done{step}'] = False
         state[f"step{step}Loading"] = False
-        state[f"disabled{step}"] = True
-        state[f'collapsed{step}'] = True
+        state[f"disabled{step}"] = not True
+        state[f'collapsed{step}'] = not True
 
     state[f'collapsed1'] = False
     state[f'disabled1'] = False

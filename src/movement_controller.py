@@ -114,7 +114,7 @@ class MovementController:
         """
         stat_time = time()
 
-        is_general_transformed = False
+
 
         if self.minor_transforms:
             self.transform_object(curr_object, general_transform=False)
@@ -128,12 +128,6 @@ class MovementController:
 
         collision_solver = 1
         while not self.check_overlay_coords_availability((x, y), added_objects, curr_object):
-
-            if self.general_transforms and not is_general_transformed:
-                self.transform_object(curr_object, general_transform=True)
-
-                is_general_transformed = True
-
             x, y = self.generate_new_coords(size_of_next_step * collision_solver)
 
             collision_solver *= 1.01
@@ -142,10 +136,6 @@ class MovementController:
 
         # outbound_solver = 1
         while not self.check_bounding_coords_availability((x, y), curr_object):
-            if self.general_transforms and not is_general_transformed:
-                self.transform_object(curr_object, general_transform=True)
-
-                is_general_transformed = True
             x, y = curr_object.controller.x, curr_object.controller.y
             # x, y = self.generate_new_coords(size_of_next_step * outbound_solver)
 

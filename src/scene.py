@@ -19,6 +19,8 @@ class Scene:
         self.height = height
         self.backgrounds = []
         self.objects = []
+        self.req_objects_num = {}
+
         self.object_general_transforms = object_general_transforms
         self.object_minor_transforms = object_minor_transforms
         self.frame_transform = frame_transform
@@ -30,9 +32,10 @@ class Scene:
             self.backgrounds.append(get_cv2_background_by_path(background_path))
         logger.info(f'{len(self.backgrounds)} backgrounds successfully added')
 
-    def add_objects(self, req_objects):
+    def add_objects(self, req_objects, state):
 
         self.objects = get_objects_list_for_project(req_objects)
+        self.req_objects_num = state['classCounts']
 
         logger.info(f'[{len(self.objects)}] objects successfully added')
         logger.info(f'available objects:\n'
@@ -49,7 +52,7 @@ class Scene:
 
         for curr_background in self.backgrounds:
 
-            temp_objects = self.objects
+            temp_objects = generate_needed_objects(self.objects, self.req_objects_num, self.object_general_transforms)
             initialize_controllers(temp_objects, movement_laws, speed_interval,
                                    self_overlay, curr_background.shape,
                                    general_transforms=self.object_general_transforms,
@@ -79,7 +82,6 @@ class Scene:
             sly_progress_backgrounds.next_step()
 
 
-
 def process_video(sly_progress, state, is_preview=True):
     req_objects = load_dumped('req_object.pkl')
     # req_objects = load_dumped(state['req_objects'])
@@ -100,7 +102,7 @@ def process_video(sly_progress, state, is_preview=True):
     else:
         custom_scene.add_backgrounds(background_paths)
 
-    custom_scene.add_objects(req_objects)
+    custom_scene.add_objects(req_objects, state)
 
     fps = state['fps']
 
