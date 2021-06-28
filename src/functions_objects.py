@@ -78,6 +78,22 @@ def extract_object_from_image(image_as_arr, label):
     return cropped_image, mask_matrix
 
 
+def generate_needed_objects(extracted_objects, req_counts, base_transform=None):
+    temp_objects = []
+    for label, count in req_counts.items():
+        if count > 0:
+            curr_label_count = 0
+            while curr_label_count != count:
+                for extracted_object in extracted_objects:
+                    if extracted_object.class_name == label:
+                        temp_objects.append(extracted_object)
+                        curr_label_count += 1
+
+
+
+
+
+
 def get_objects_list_for_project(req_objects):
     """
     Extract all needed objects from images
@@ -120,3 +136,7 @@ def get_available_objects(objects):
         obj_names[curr_object.class_name] = curr_num + 1
     return obj_names
 
+
+def generate_base_primitives(extracted_objects, required_objects):
+
+    return 0

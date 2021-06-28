@@ -12,24 +12,29 @@ from sly_globals import *
 
 from supervisely_lib.app.widgets import CompareGallery
 
-_templates = [
+base_templates = [
     {
-        "config": "src/augs/svs-lite.json",
-        "name": "Lite (color + rotate)",
-    },
-    {
-        "config": "src/augs/svs-lite-with-fliplr.json",
-        "name": "Lite + fliplr",
-    },
-    {
-        "config": "src/augs/svs-heavy-no-fliplr.json",
-        "name": "Heavy",
-    },
-    {
-        "config": "src/augs/svs-heavy-with-fliplr.json",
-        "name": "Heavy + fliplr",
+        "config": "src/augs/base_lite.json",
+        "name": "Base Lite",
     },
 ]
+
+minor_templates = [
+    {
+        "config": "src/augs/minor_lite.json",
+        "name": "Minor Lite",
+    },
+]
+
+frame_templates = [
+    {
+        "config": "src/augs/frame_lite.json",
+        "name": "Frame Lite",
+    },
+]
+
+
+all_templates = base_templates + minor_templates + frame_templates
 
 _custom_pipeline_path = None
 custom_pipeline = None
@@ -48,12 +53,22 @@ augs_config_path = None
 def base_augs_handler(api: sly.Api, task_id, context, state, app_logger):
     preview_augs(state, 'Base')
 
+    fields = [
+        {"field": f"state.loadingBaseAugs", "payload": False},
+    ]
+    api.app.set_fields(task_id, fields)
+
 
 @app.callback("minor_augs_handler")
 @sly.timeit
 @app.ignore_errors_and_show_dialog_window()
 def base_augs_handler(api: sly.Api, task_id, context, state, app_logger):
     preview_augs(state, 'Minor')
+
+    fields = [
+        {"field": f"state.loadingMinorAugs", "payload": False},
+    ]
+    api.app.set_fields(task_id, fields)
 
 
 @app.callback("frame_augs_handler")
@@ -62,7 +77,10 @@ def base_augs_handler(api: sly.Api, task_id, context, state, app_logger):
 def base_augs_handler(api: sly.Api, task_id, context, state, app_logger):
     preview_augs(state, 'Frame')
 
-
+    fields = [
+        {"field": f"state.loadingFrameAugs", "payload": False},
+    ]
+    api.app.set_fields(task_id, fields)
 
 
 def preview_augs(state, augmentation_type):
@@ -174,10 +192,18 @@ def _load_template(json_path):
     return pipeline, py_code
 
 
-def get_aug_templates_list():
+def get_aug_templates_list(augs_type='Base'):
+
+    if augs_type == 'Base':
+        curr_templates = base_templates
+    elif augs_type == 'Minor':
+        curr_templates = minor_templates
+    elif augs_type == 'Frame':
+        curr_templates = frame_templates
+
     pipelines_info = []
     name_to_py = {}
-    for template in _templates:
+    for template in curr_templates:
         json_path = os.path.join(root_source_dir, template["config"])
         _, py_code = _load_template(json_path)
         pipelines_info.append({
@@ -189,7 +215,7 @@ def get_aug_templates_list():
 
 
 def get_template_by_name(name):
-    for template in _templates:
+    for template in all_templates:
         if template["name"] == name:
             json_path = os.path.join(root_source_dir, template["config"])
             pipeline, _ = _load_template(json_path)
@@ -198,10 +224,7 @@ def get_template_by_name(name):
 
 
 def init_augs(data, state):
-    templates_info, name_to_py = get_aug_templates_list()
 
-    data["augTemplates"] = templates_info
-    data["augPythonCode"] = name_to_py
 
     data["pyViewOptions"] = {
         "mode": 'ace/mode/python',
@@ -214,7 +237,12 @@ def init_augs(data, state):
         state[f'use{aug_type}Augs'] = False
         state[f"augs{aug_type}Type"] = "template"
 
+        templates_info, name_to_py = get_aug_templates_list(aug_type)
+        data[f"aug{aug_type}Templates"] = templates_info
+        data[f"aug{aug_type}PythonCode"] = name_to_py
+
         state[f"augs{aug_type}TemplateName"] = templates_info[0]["name"]
+
         state[f"custom{aug_type}AugsPath"] = ""  # "/svs-heavy-no-fliplr.json"  # @TODO: for debug
         data[f"custom{aug_type}AugsPy"] = None
 
@@ -223,6 +251,8 @@ def init_augs(data, state):
 
         gallery_custom = CompareGallery(task_id, api, f"data.gallery{aug_type}2", project_meta)
         data[f"gallery{aug_type}2"] = gallery_custom.to_json()
+
+        state[f'loading{aug_type}Augs'] = False
 
 
 def restart(data, state):

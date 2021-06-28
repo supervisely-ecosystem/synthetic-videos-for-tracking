@@ -1,0 +1,44 @@
+{
+    "pipeline": [
+        {
+            "category": "geometric",
+            "name": "Rotate",
+            "params": {
+                "rotate": [
+                    -16,
+                    16
+                ],
+                "order": 1,
+                "cval": 0,
+                "mode": "constant",
+                "fit_output": true
+            },
+            "python": "iaa.geometric.Rotate(rotate=(-16, 16), order=1, cval=0, mode='constant', fit_output=True)"
+        },
+        {
+            "category": "color",
+            "name": "AddToBrightness",
+            "params": {
+                "add": [
+                    -8,
+                    8
+                ],
+                "to_colorspace": "YCrCb",
+                "from_colorspace": "RGB"
+            },
+            "python": "iaa.color.AddToBrightness(add=(-8, 8), to_colorspace='YCrCb', from_colorspace='RGB')"
+        },
+        {
+            "category": "color",
+            "name": "AddToHue",
+            "params": {
+                "value": [
+                    -8,
+                    8
+                ]
+            },
+            "python": "iaa.color.AddToHue(value=(-8, 8))"
+        }
+    ],
+    "random_order": false
+}

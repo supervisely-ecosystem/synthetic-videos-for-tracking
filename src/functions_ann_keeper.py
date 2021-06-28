@@ -14,7 +14,7 @@ class AnnotationKeeper:
         self.dataset = None
         self.meta = None
 
-        self.key_id_map = KeyIdMap()
+        # self.key_id_map = KeyIdMap()
         self.sly_objects_list = []
         self.video_object_list = []
 
