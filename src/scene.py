@@ -13,6 +13,7 @@ import random
 
 import copy
 
+
 class Scene:
     def __init__(self, width=1920, height=1080, object_general_transforms=None,
                  object_minor_transforms=None, frame_transform=None):
@@ -71,9 +72,10 @@ class Scene:
                                        minor_transforms=self.object_minor_transforms)
 
                 self.ann_keeper = AnnotationKeeper(video_shape=curr_background.shape,
-                                              current_objects=temp_objects)
+                                                   current_objects=temp_objects)
 
-                frames = generate_frames(fps, duration, curr_background, temp_objects, self.ann_keeper, self.frame_transform,
+                frames = generate_frames(fps, duration, curr_background, temp_objects, self.ann_keeper,
+                                         self.frame_transform,
                                          sly_progress)
 
                 if not frames:
@@ -86,24 +88,24 @@ class Scene:
                     sly_progress.refresh_params('Uploading annotations', 1)
 
                     self.ann_keeper.init_project_remotely(project_id=project_id, project_name=project_name,
-                                                     ds_id=ds_id, ds_name=ds_name)
+                                                          ds_id=ds_id, ds_name=ds_name)
                     self.ann_keeper.upload_annotation(video_path)
                     project_id = self.ann_keeper.project.id
+                    ds_id = self.ann_keeper.dataset.name
 
                     sly_progress.next_step()
 
                 sly_progress_backgrounds.next_step()
             else:
                 return -2
-
-
+        return 0
 
 
 def process_video(sly_progress, state, is_preview=True):
     req_objects = load_dumped('req_object.pkl')
     req_backgrounds = load_dumped('req_backgrounds.pkl')
     augs = load_dumped('augmentations.pkl')
-    
+
     base_transform, minor_transform, frame_transform = get_transforms(augs)
 
     background_paths = [curr_background.image_path for curr_background in req_backgrounds]
@@ -112,7 +114,8 @@ def process_video(sly_progress, state, is_preview=True):
                          frame_transform=frame_transform)
 
     if is_preview:
-        custom_scene.add_backgrounds([background_paths[random.randint(0, len(background_paths) - 1)]])
+        # custom_scene.add_backgrounds([background_paths[random.randint(0, len(background_paths) - 1)]])
+        custom_scene.add_backgrounds([background_paths[0]])
     else:
         custom_scene.add_backgrounds(background_paths)
 
@@ -134,24 +137,24 @@ def process_video(sly_progress, state, is_preview=True):
                                         req_laws={'linearLaw': state['linearLaw'],
                                                   'randomLaw': state['randomLaw']})
 
-    custom_scene.generate_video(video_path=video_path,  # generate video
-                                duration=duration,
-                                fps=fps,
-                                movement_laws=movement_laws,
-                                state=state,
-                                upload_ann=False if is_preview else True,
-                                sly_progress=sly_progress,
-                                )
+    rc = custom_scene.generate_video(video_path=video_path,  # generate video
+                                     duration=duration,
+                                     fps=fps,
+                                     movement_laws=movement_laws,
+                                     state=state,
+                                     upload_ann=False if is_preview else True,
+                                     sly_progress=sly_progress,
+                                     )
+    if rc < 0:
+        return rc, None
 
     if not is_preview:
-        return custom_scene.ann_keeper.project.id
-
+        return rc, custom_scene.ann_keeper.project.id
 
 @app.callback("apply_synth_settings")
 @sly.timeit
 @app.ignore_errors_and_show_dialog_window()
 def apply_synth_settings(api: sly.Api, task_id, context, state, app_logger):
-
     fields = [
         {"field": "state.done4", "payload": True},
         {"field": "state.collapsed5", "payload": False},
