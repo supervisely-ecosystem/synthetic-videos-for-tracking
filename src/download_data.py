@@ -5,6 +5,8 @@ import json
 import pickle
 
 from init_ui import *
+from functions_background import *
+from sly_warnings import window_warner
 
 
 class RequirementObject:
@@ -26,7 +28,8 @@ def get_project_ann_info(project_id, dataset_names=None, all_ds=False):
         dataset_ids = [ds.id if ds.name in dataset_names else None for ds in api.dataset.get_list(project_id)]
 
     for dataset_id in dataset_ids:
-        ann_infos[dataset_id] = api.annotation.get_list(dataset_id)
+        if dataset_id:
+            ann_infos[dataset_id] = api.annotation.get_list(dataset_id)
 
     return ann_infos
 
@@ -118,7 +121,6 @@ def download_project(api: sly.Api, task_id, context, state, app_logger):
         {"field": "state.activeStep", "payload": 2},
         {"field": "state.collapsed2", "payload": False},
         {"field": "state.disabled2", "payload": False},
-        {"field": "state.req_backgrounds", "payload": 'req_backgrounds.pkl'}
 
     ]
     api.task.set_fields(task_id, fields)
@@ -127,7 +129,7 @@ def download_project(api: sly.Api, task_id, context, state, app_logger):
 
 @app.callback("download_objects")
 @sly.timeit
-@app.ignore_errors_and_show_dialog_window()
+# @app.ignore_errors_and_show_dialog_window()
 def download_project(api: sly.Api, task_id, context, state, app_logger):
 
     sly_progress = SlyProgress(api, task_id, 'progressDownloadObjects')
@@ -143,27 +145,62 @@ def download_project(api: sly.Api, task_id, context, state, app_logger):
     req_objects = get_list_req_objects(objects_ann_info, state)
 
     if len(req_objects) == 0:
-        app.show_modal_window(f"No objects selected.\nPlease select objects.", level='warning')
-
-        fields = [
-            {"field": "state.step2Loading", "payload": False},
-        ]
+        window_warner(message=f"No objects selected.\nPlease select objects.",
+                      fields=[{"field": "state.step2Loading", "payload": False}])
 
     else:
+
+        req_backgrounds = load_dumped('req_backgrounds.pkl')
 
         download_images(req_objects, 'objects', sly_progress)
 
         dump_req(req_objects, 'req_object.pkl')
 
+        if not objects_larger_than_backgrounds(req_objects, req_backgrounds):
+
+            fields = [
+                {"field": "state.step2Loading", "payload": False},
+                {"field": "state.done2", "payload": True},
+                {"field": "state.activeStep", "payload": 3},
+                {"field": "state.collapsed3", "payload": False},
+                {"field": "state.disabled3", "payload": False},
+
+            ]
+            api.app.set_field(task_id, "data.scrollIntoView", f"step{3}")
+
+            api.task.set_fields(task_id, fields)
+
+        else:
+            fields = [
+                {"field": "state.showCanResizeWindow", "payload": True},
+                {"field": "state.step2Loading", "payload": False},
+            ]
+
+            api.task.set_fields(task_id, fields)
+
+
+@app.callback("define_resize_status")
+@sly.timeit
+def define_resize_status(api: sly.Api, task_id, context, state, app_logger):
+    can_resize = state['canResize']
+
+    if can_resize:
         fields = [
-            {"field": "state.step2Loading", "payload": False},
             {"field": "state.done2", "payload": True},
             {"field": "state.activeStep", "payload": 3},
             {"field": "state.collapsed3", "payload": False},
             {"field": "state.disabled3", "payload": False},
-            {"field": "state.req_objects", "payload": 'req_object.pkl'},
+            {"field": "state.showCanResizeWindow", "payload": False},
 
         ]
         api.app.set_field(task_id, "data.scrollIntoView", f"step{3}")
 
-    api.task.set_fields(task_id, fields)
+        api.task.set_fields(task_id, fields)
+
+    else:
+        fields = [
+            {"field": "state.showCanResizeWindow", "payload": False},
+        ]
+        window_warner('Please reselect objects', [])
+
+        api.task.set_fields(task_id, fields)

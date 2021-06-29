@@ -12,6 +12,8 @@ from sly_globals import *
 
 from supervisely_lib.app.widgets import CompareGallery
 
+from imgaug.augmentables.segmaps import SegmentationMapsOnImage
+
 base_templates = [
     {
         "config": "src/augs/base_lite.json",
@@ -33,7 +35,6 @@ frame_templates = [
     },
 ]
 
-
 all_templates = base_templates + minor_templates + frame_templates
 
 _custom_pipeline_path = None
@@ -44,7 +45,6 @@ remote_preview_path = "/temp/{}_preview_augs.jpg"
 augs_json_config = None
 augs_py_preview = None
 augs_config_path = None
-
 
 
 @app.callback("base_augs_handler")
@@ -100,12 +100,10 @@ def preview_augs(state, augmentation_type):
     ]
     api.app.set_fields(task_id, fields)
 
-    req_objects = load_dumped(state['req_objects'])
-    # req_objects = load_dumped('req_object.pkl')  # on debug
+    req_objects = load_dumped('req_object.pkl')
 
     if augmentation_type == 'Frame':
-        req_objects = load_dumped(state['req_objects'])
-        # req_objects = load_dumped('req_backgrounds.pkl')  # on debug
+        req_objects = load_dumped('req_backgrounds.pkl')
 
     req_objects = req_objects[random.randint(0, len(req_objects)) - 1]
 
@@ -193,7 +191,6 @@ def _load_template(json_path):
 
 
 def get_aug_templates_list(augs_type='Base'):
-
     if augs_type == 'Base':
         curr_templates = base_templates
     elif augs_type == 'Minor':
@@ -224,8 +221,6 @@ def get_template_by_name(name):
 
 
 def init_augs(data, state):
-
-
     data["pyViewOptions"] = {
         "mode": 'ace/mode/python',
         "showGutter": False,
@@ -257,6 +252,7 @@ def init_augs(data, state):
 
 def restart(data, state):
     data["done2"] = False
+
 
 #
 # @app.callback("load_existing_pipeline")
@@ -295,7 +291,42 @@ def use_augs(api: sly.Api, task_id, context, state, app_logger):
         {"field": "state.collapsed4", "payload": False},
         {"field": "state.disabled4", "payload": False},
         {"field": "state.activeStep", "payload": 4},
-        {"field": "state.augmentations", "payload": 'augmentations.pkl'}
     ]
     api.app.set_field(task_id, "data.scrollIntoView", f"step{4}")
     api.app.set_fields(task_id, fields)
+
+
+def transform_object(curr_object, transform, general_transform=False):
+
+    segment_map = SegmentationMapsOnImage(curr_object.mask_backup.copy(), shape=curr_object.mask_backup.shape)
+    if general_transform:
+        image_aug, segment_map_aug = transform(image=curr_object.image_backup.copy(),
+                                                             segmentation_maps=segment_map)
+        mask_aug = segment_map_aug.get_arr()
+
+        t, l, b, r = find_mask_tight_bbox(mask_aug)
+
+        image_aug = image_aug[t:b, l:r]
+        mask_aug = mask_aug[t:b, l:r]
+
+        curr_object.image = image_aug
+        curr_object.image_backup = image_aug
+        curr_object.mask = mask_aug
+        curr_object.mask_backup = mask_aug
+
+    else:
+
+        image_aug, segment_map_aug = transform(image=curr_object.image_backup.copy(),
+                                                           segmentation_maps=segment_map)
+
+        mask_aug = segment_map_aug.get_arr()
+
+        t, l, b, r = find_mask_tight_bbox(mask_aug)
+
+        image_aug = image_aug[t:b, l:r]
+        mask_aug = mask_aug[t:b, l:r]
+
+        curr_object.image = image_aug
+        curr_object.mask = mask_aug
+
+    return 0

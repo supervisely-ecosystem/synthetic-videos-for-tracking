@@ -72,4 +72,21 @@
     </span>
     </el-dialog>
 
+
+    <el-dialog
+            title="Can resize"
+            :visible.sync="state.showCanResizeWindow"
+            size="tiny">
+        <span>Some of selected objects are larger than some backgrounds.
+            Are you allowed to reduce objects to acceptable sizes?</span>
+        <span slot="footer" class="dialog-footer">
+        <el-button @click="state.canResize = false; command('define_resize_status')">Cancel</el-button>
+
+        <el-button type="primary" class="regular"
+                   @click="state.canResize = true; command('define_resize_status')">
+            Allow
+        </el-button>
+    </span>
+    </el-dialog>
+
 </div>

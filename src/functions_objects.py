@@ -7,6 +7,13 @@ from sly_globals import *
 
 from logger import logger
 
+import augmentations
+
+from sly_warnings import *
+
+from functions_background import *
+
+import imgaug.augmenters as iaa
 
 class ExtractedObject:
     """
@@ -78,20 +85,54 @@ def extract_object_from_image(image_as_arr, label):
     return cropped_image, mask_matrix
 
 
-def generate_needed_objects(extracted_objects, req_counts, base_transform=None):
+def reduce_object_size(curr_object):
+    transformation = iaa.Resize(0.5, interpolation='cubic')
+    augmentations.transform_object(curr_object, transformation, True)
+
+
+def generate_base_primitives(extracted_objects, req_counts, curr_background, base_transform=None, can_resize=False):
     temp_objects = []
+
+    req_counts = {key: value for key, value in req_counts.items() if value > 0}
+
     for label, count in req_counts.items():
-        if count > 0:
-            curr_label_count = 0
-            while curr_label_count != count:
-                for extracted_object in extracted_objects:
-                    if extracted_object.class_name == label:
-                        temp_objects.append(extracted_object)
-                        curr_label_count += 1
 
+        curr_label_count = 0
+        while curr_label_count < count:
+            for extracted_object in extracted_objects:
+                if extracted_object.class_name == label:
+                    curr_object_backup = extracted_object
 
+                    for tries in range(10):
+                        curr_object = curr_object_backup
 
+                        if base_transform:
+                            augmentations.transform_object(curr_object, base_transform, True)
 
+                        if not object_larger_than_background(curr_object.image, curr_background):
+                            break
+
+                        if can_resize:
+                            reduce_object_size(curr_object_backup)
+
+                        if not object_larger_than_background(curr_object.image, curr_background):
+                            break
+
+                    else:
+                        window_warner('Selected Base augmentations enlarge objects too much, '
+                                      'they start to exceed the size of the backgrounds. '
+                                      'Please reselect Base augmentations.',
+                                      fields=[{"field": "state.previewLoading", "payload": False},
+                                              {"field": "data.videoUrl", "payload": None}])
+                        return []
+
+                    temp_objects.append(curr_object)
+                    curr_label_count += 1
+
+                if curr_label_count == count:
+                    break
+
+    return temp_objects
 
 
 def get_objects_list_for_project(req_objects):
@@ -137,6 +178,13 @@ def get_available_objects(objects):
     return obj_names
 
 
-def generate_base_primitives(extracted_objects, required_objects):
+def load_objects_images(req_objects):
+    objects_images = []
 
-    return 0
+    extracted_objects = get_objects_list_for_project(req_objects)
+
+    for extracted_object in extracted_objects:
+        objects_images.append(extracted_object.image)
+
+    return objects_images
+

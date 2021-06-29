@@ -7,6 +7,7 @@ import cv2
 from logger import logger
 
 from movement_controller import MovementController
+from sly_warnings import window_warner
 
 
 def add_object_to_background(background, curr_object):
@@ -88,6 +89,7 @@ def keep_annotations_by_frame(temp_objects, frame_index, ann_keeper):
         x, y = curr_object.controller.x, curr_object.controller.y
         curr_object_coords = sly.Rectangle(y, x, y + curr_object.image.shape[0] - 1,
                                            x + curr_object.image.shape[1] - 1)
+
         annotations_for_frame.append(curr_object_coords)
 
     ann_keeper.add_figures_by_frame(annotations_for_frame, frame_index)
@@ -116,16 +118,18 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper=None, fr
         frame_background = background.copy()
         added_objects = []
         for curr_object in temp_objects:
-            # print(f'before {curr_object.image_backup.shape}')
-            curr_object.controller.next_step(added_objects, curr_object)
+            rc = curr_object.controller.next_step(added_objects, curr_object)
+
+            if rc == -1:
+                window_warner('Too many collisions occurred between objects during video generation. '
+                              'Please allow more objects to overlap each other, or reduce the number of objects.',
+                              fields=[{"field": "state.previewLoading", "payload": False},
+                                      {"field": "data.videoUrl", "payload": None}])
+                return []
 
             add_object_to_background(
                 frame_background, curr_object)
             added_objects.append(curr_object)
-
-            # cv2.imshow(f'{frame_index}', frame_background)
-            # cv2.waitKey()
-            # print(f'after {curr_object.image.shape}')
 
         if frame_transform:
             frame_background = frame_transform(image=frame_background)

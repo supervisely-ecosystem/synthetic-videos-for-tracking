@@ -43,6 +43,9 @@ def init_input_project(data, state):
     state["bgDatasets"] = []
     state["allDatasets"] = True
 
+    state["showCanResizeWindow"] = False
+    state["canResize"] = False
+
 
 
 

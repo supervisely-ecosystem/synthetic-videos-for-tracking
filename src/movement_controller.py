@@ -5,6 +5,8 @@ from imgaug.augmentables.segmaps import SegmentationMapsOnImage
 from logger import logger
 import cv2
 
+from augmentations import *
+
 
 from time import time
 
@@ -60,47 +62,13 @@ class MovementController:
         y = self.y + y_div * size_of_next_step * self.down
         return int(x), int(y)
 
-    def transform_object(self, curr_object, general_transform=False):
+    def transform_object(self, curr_object, is_general_transform=False):
 
-        segment_map = SegmentationMapsOnImage(curr_object.mask_backup.copy(), shape=curr_object.mask_backup.shape)
-        if general_transform:
-            image_aug, segment_map_aug = self.general_transforms(image=curr_object.image_backup.copy(),
-                                                                 segmentation_maps=segment_map)
-            mask_aug = segment_map_aug.get_arr()
-
-            # if not ((image_aug.shape[0] < 130 or image_aug.shape[1] < 130) or
-            #         (image_aug.shape[0] > 650 or image_aug.shape[1] > 650)):
-
-            t, l, b, r = find_mask_tight_bbox(mask_aug)
-
-            image_aug = image_aug[t:b, l:r]
-            mask_aug = mask_aug[t:b, l:r]
-
-            curr_object.image = image_aug
-            curr_object.image_backup = image_aug
-            curr_object.mask = mask_aug
-            curr_object.mask_backup = mask_aug
-
-            # self.calculate_allowable_limits(curr_object.image)
+        if is_general_transform:
+            transform_object(curr_object, self.general_transforms, is_general_transform)
 
         else:
-            stat_time = time()
-
-            image_aug, segment_map_aug = self.minor_transforms(image=curr_object.image_backup.copy(),
-                                                               segmentation_maps=segment_map)
-
-            mask_aug = segment_map_aug.get_arr()
-
-            # if not ((image_aug.shape[0] < 130 or image_aug.shape[1] < 130) or
-            #         (image_aug.shape[0] > 700 or image_aug.shape[1] > 700)):
-
-            t, l, b, r = find_mask_tight_bbox(mask_aug)
-
-            image_aug = image_aug[t:b, l:r]
-            mask_aug = mask_aug[t:b, l:r]
-
-            curr_object.image = image_aug
-            curr_object.mask = mask_aug
+            transform_object(curr_object, self.minor_transforms, is_general_transform)
 
         self.calculate_allowable_limits(curr_object.image)
 
@@ -112,15 +80,9 @@ class MovementController:
         Если объект не может попасть на следующий шаг — производит перерассчет
         :return: новые координаты объекта
         """
-        stat_time = time()
-
-
 
         if self.minor_transforms:
-            self.transform_object(curr_object, general_transform=False)
-
-        # logger.info(f'minor_trans: {time() - stat_time}')
-        stat_time = time()
+            self.transform_object(curr_object, is_general_transform=False)
 
         size_of_next_step = self.size_of_next_step
 
@@ -131,17 +93,15 @@ class MovementController:
             x, y = self.generate_new_coords(size_of_next_step * collision_solver)
 
             collision_solver *= 1.01
-        # logger.info(f'collision: {time() - stat_time}')
-        stat_time = time()
 
-        # outbound_solver = 1
+            if collision_solver > 200:
+                return -1  # collision problem
+
         while not self.check_bounding_coords_availability((x, y), curr_object):
             x, y = curr_object.controller.x, curr_object.controller.y
-            # x, y = self.generate_new_coords(size_of_next_step * outbound_solver)
 
-        # logger.info(f'outbound: {time() - stat_time}')
         self.x, self.y = x, y
-        return self.x, self.y
+        return 0
 
     def check_overlay_coords_availability(self, new_coords, added_objects, curr_object):
         """Проверка доступности по координат"""
