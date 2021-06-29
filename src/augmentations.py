@@ -330,3 +330,6 @@ def transform_object(curr_object, transform, general_transform=False):
         curr_object.mask = mask_aug
 
     return 0
+
+def get_transforms(augs_dict):
+    return augs_dict['Base'], augs_dict['Minor'], augs_dict['Frame']
