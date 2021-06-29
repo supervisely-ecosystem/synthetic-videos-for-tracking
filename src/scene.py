@@ -85,15 +85,13 @@ class Scene:
                 write_frames_to_file(video_path, fps, frames, video_shape, sly_progress)
 
                 if upload_ann:
-                    sly_progress.refresh_params('Uploading annotations', 1)
 
                     self.ann_keeper.init_project_remotely(project_id=project_id, project_name=project_name,
                                                           ds_id=ds_id, ds_name=ds_name)
-                    self.ann_keeper.upload_annotation(video_path)
+                    self.ann_keeper.upload_annotation(video_path, sly_progress)
                     project_id = self.ann_keeper.project.id
                     ds_id = self.ann_keeper.dataset.name
 
-                    sly_progress.next_step()
 
                 sly_progress_backgrounds.next_step()
             else:
@@ -114,8 +112,8 @@ def process_video(sly_progress, state, is_preview=True):
                          frame_transform=frame_transform)
 
     if is_preview:
-        # custom_scene.add_backgrounds([background_paths[random.randint(0, len(background_paths) - 1)]])
-        custom_scene.add_backgrounds([background_paths[0]])
+        custom_scene.add_backgrounds([background_paths[random.randint(0, len(background_paths) - 1)]])
+        # custom_scene.add_backgrounds([background_paths[0]])
     else:
         custom_scene.add_backgrounds(background_paths)
 
@@ -146,10 +144,13 @@ def process_video(sly_progress, state, is_preview=True):
                                      sly_progress=sly_progress,
                                      )
     if rc < 0:
-        return rc, None
+        return rc, -1
 
     if not is_preview:
         return rc, custom_scene.ann_keeper.project.id
+
+    return rc, None
+
 
 @app.callback("apply_synth_settings")
 @sly.timeit
