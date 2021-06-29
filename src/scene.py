@@ -3,7 +3,7 @@ from functions_objects import *
 from functions_video import *
 from movement_laws import *
 
-from transformations import get_transforms
+from augmentations import get_transforms
 
 from functions_ann_keeper import AnnotationKeeper
 
