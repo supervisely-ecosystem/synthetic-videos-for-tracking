@@ -121,11 +121,11 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper=None, fr
             rc = curr_object.controller.next_step(added_objects, curr_object)
 
             if rc == -1:
-                window_warner('Too many collisions occurred between objects during video generation. '
-                              'Please allow more objects to overlap each other, or reduce the number of objects.',
+                window_warner('Too many collisions occurred between objects during video generation.'
+                              'Please allow objects to overlap each other more, or reduce the objects count.',
                               fields=[{"field": "state.previewLoading", "payload": False},
                                       {"field": "data.videoUrl", "payload": None}])
-                return []
+                return None
 
             add_object_to_background(
                 frame_background, curr_object)

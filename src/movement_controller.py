@@ -91,10 +91,12 @@ class MovementController:
         collision_solver = 1
         while not self.check_overlay_coords_availability((x, y), added_objects, curr_object):
             x, y = self.generate_new_coords(size_of_next_step * collision_solver)
+            while not self.check_bounding_coords_availability((x, y), curr_object):
+                x, y = curr_object.controller.x, curr_object.controller.y
 
-            collision_solver *= 1.01
+            collision_solver *= 1.3
 
-            if collision_solver > 200:
+            if collision_solver > 50:
                 return -1  # collision problem
 
         while not self.check_bounding_coords_availability((x, y), curr_object):
