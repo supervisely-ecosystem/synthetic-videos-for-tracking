@@ -9,6 +9,8 @@ from download_data import *
 
 from functions_background import *
 
+from functools import partial
+
 
 @app.callback("preview")
 @sly.timeit
@@ -25,15 +27,15 @@ def preview(api: sly.Api, task_id, context, state, app_logger):
     rc, _ = process_video(sly_progress, state, is_preview=True)
 
     if rc == 0:
-        sly_progress.refresh_params('Uploading video', 1)
+        sly_progress.refresh_params('Uploading video', 0, True)
+        progress_cb = partial(sly_progress.upload_monitor, api=api, task_id=task_id, progress=sly_progress.pbar)
 
         video_path = os.path.join(app.data_dir, './preview.mp4')
         remote_video_path = os.path.join(f"/SLYvSynth/{task_id}", "preview.mp4")
         if api.file.exists(team_id, remote_video_path):
             api.file.remove(team_id, remote_video_path)
 
-        # file_info = api.file.upload(team_id, video_path, remote_video_path, progress_cb=sly_progress.pbar.iters_done_report)
-        file_info = api.file.upload(team_id, video_path, remote_video_path)
+        file_info = api.file.upload(team_id, video_path, remote_video_path, progress_cb=progress_cb)
 
         sly_progress.next_step()
 

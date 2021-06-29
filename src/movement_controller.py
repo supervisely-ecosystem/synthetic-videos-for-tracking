@@ -5,7 +5,7 @@ from imgaug.augmentables.segmaps import SegmentationMapsOnImage
 from logger import logger
 import cv2
 
-from augmentations import *
+import augmentations
 
 
 from time import time
@@ -65,10 +65,10 @@ class MovementController:
     def transform_object(self, curr_object, is_general_transform=False):
 
         if is_general_transform:
-            transform_object(curr_object, self.general_transforms, is_general_transform)
+            augmentations.transform_object(curr_object, self.general_transforms, is_general_transform)
 
         else:
-            transform_object(curr_object, self.minor_transforms, is_general_transform)
+            augmentations.transform_object(curr_object, self.minor_transforms, is_general_transform)
 
         self.calculate_allowable_limits(curr_object.image)
 

@@ -4,6 +4,8 @@ from logger import logger
 
 from supervisely_lib.video_annotation.key_id_map import KeyIdMap
 
+from functools import partial
+
 
 class AnnotationKeeper:
     def __init__(self, video_shape, current_objects):
@@ -56,7 +58,7 @@ class AnnotationKeeper:
         if not project_id:
             api.project.update_meta(self.project.id, self.meta.to_json())
 
-    def upload_annotation(self, video_path):
+    def upload_annotation(self, video_path, sly_progress):
         self.get_frames_list()
         self.frames_collection = sly.FrameCollection(self.frames_list)
 
@@ -64,8 +66,14 @@ class AnnotationKeeper:
                                                self.video_object_collection, self.frames_collection)
 
         video_name = video_path.split('/')[-1]
-        file_info = api.video.upload_paths(self.dataset.id, [video_name], [video_path])
+
+        sly_progress.refresh_params('Uploading video',  sly.fs.get_file_size(video_path))
+        progress_cb = partial(sly_progress.set_progress, api=api, task_id=task_id, progress=sly_progress.pbar)
+        progress_cb(0)
+        file_info = api.video.upload_paths(self.dataset.id, [video_name], [video_path], item_progress=progress_cb)
+        sly_progress.refresh_params('Uploading annotations', 1)
         api.video.annotation.append(file_info[0].id, video_annotation)
+        sly_progress.next_step()
 
         logger.info(f'{video_name} uploaded!')
 
