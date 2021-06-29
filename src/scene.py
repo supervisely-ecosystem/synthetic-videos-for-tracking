@@ -11,6 +11,7 @@ from init_ui import *
 
 import random
 
+import copy
 
 class Scene:
     def __init__(self, width=1920, height=1080, object_general_transforms=None,
@@ -18,7 +19,10 @@ class Scene:
         self.width = width
         self.height = height
         self.backgrounds = []
-        self.objects = []
+
+        self.base_primitives = []
+        self.base_primitives_backup = []
+
         self.req_objects_num = {}
 
         self.object_general_transforms = object_general_transforms
@@ -34,62 +38,72 @@ class Scene:
 
     def add_objects(self, req_objects, state):
 
-        self.objects = get_objects_list_for_project(req_objects)
+        self.base_primitives = get_objects_list_for_project(req_objects)
+        self.base_primitives_backup = get_objects_list_for_project(req_objects)
         self.req_objects_num = state['classCounts']
 
-        logger.info(f'[{len(self.objects)}] objects successfully added')
+        logger.info(f'[{len(self.base_primitives)}] objects successfully added')
         logger.info(f'available objects:\n'
-                    f'{get_available_objects(self.objects)}\n')
+                    f'{get_available_objects(self.base_primitives)}\n')
 
-    def generate_video(self, video_path, fps, duration, movement_laws, self_overlay,
-                       speed_interval,
-                       project_id=None, ds_id=None,
-                       project_name='SLYvSynthTest', ds_name='ds_0000',
-                       upload_ann=False, sly_progress=None):
+    def generate_video(self, video_path, fps, duration, movement_laws, state, upload_ann=False, sly_progress=None):
+
+        self_overlay = tuple(state['objectOverlayInterval'])
+        speed_interval = tuple(state['speedInterval'])
+        project_name = state["dstProjectName"]
+        ds_name = state["dstDatasetName"]
+        project_id = state["dstProjectId"]
+        ds_id = state["selectedDatasetName"]
 
         sly_progress_backgrounds = SlyProgress(api, task_id, 'progress4')
         sly_progress_backgrounds.refresh_params('Video', len(self.backgrounds))
 
         for curr_background in self.backgrounds:
 
-            temp_objects = generate_needed_objects(self.objects, self.req_objects_num, self.object_general_transforms)
-            initialize_controllers(temp_objects, movement_laws, speed_interval,
-                                   self_overlay, curr_background.shape,
-                                   general_transforms=self.object_general_transforms,
-                                   minor_transforms=self.object_minor_transforms)
+            temp_objects = copy.deepcopy(self.base_primitives)
+            temp_objects = generate_base_primitives(temp_objects, self.req_objects_num,
+                                                    curr_background, self.object_general_transforms,
+                                                    state['canResize'])
+            if len(temp_objects) > 0:
+                initialize_controllers(temp_objects, movement_laws, speed_interval,
+                                       self_overlay, curr_background.shape,
+                                       general_transforms=self.object_general_transforms,
+                                       minor_transforms=self.object_minor_transforms)
 
-            ann_keeper = AnnotationKeeper(video_shape=curr_background.shape,
-                                          current_objects=temp_objects)
+                self.ann_keeper = AnnotationKeeper(video_shape=curr_background.shape,
+                                              current_objects=temp_objects)
 
-            frames = generate_frames(fps, duration, curr_background, temp_objects, ann_keeper, self.frame_transform,
-                                     sly_progress)
+                frames = generate_frames(fps, duration, curr_background, temp_objects, self.ann_keeper, self.frame_transform,
+                                         sly_progress)
 
-            video_shape = (curr_background.shape[1], curr_background.shape[0])
-            write_frames_to_file(video_path, fps, frames, video_shape, sly_progress)
+                if not frames:
+                    return -3
 
-            if upload_ann:
-                sly_progress.refresh_params('Uploading annotations', 1)
+                video_shape = (curr_background.shape[1], curr_background.shape[0])
+                write_frames_to_file(video_path, fps, frames, video_shape, sly_progress)
 
-                ann_keeper.init_project_remotely(project_id=project_id, project_name=project_name,
-                                                 ds_id=ds_id, ds_name=ds_name)
-                ann_keeper.upload_annotation(video_path)
-                project_id = ann_keeper.project.id
+                if upload_ann:
+                    sly_progress.refresh_params('Uploading annotations', 1)
 
-                sly_progress.next_step()
+                    self.ann_keeper.init_project_remotely(project_id=project_id, project_name=project_name,
+                                                     ds_id=ds_id, ds_name=ds_name)
+                    self.ann_keeper.upload_annotation(video_path)
+                    project_id = self.ann_keeper.project.id
 
-            self.ann_keeper = ann_keeper
+                    sly_progress.next_step()
 
-            sly_progress_backgrounds.next_step()
+                sly_progress_backgrounds.next_step()
+            else:
+                return -2
+
+
 
 
 def process_video(sly_progress, state, is_preview=True):
     req_objects = load_dumped('req_object.pkl')
-    # req_objects = load_dumped(state['req_objects'])
     req_backgrounds = load_dumped('req_backgrounds.pkl')
-    # req_backgrounds = load_dumped(state['req_backgrounds'])
     augs = load_dumped('augmentations.pkl')
-    # augs = load_dumped(state['augmentations'])
-
+    
     base_transform, minor_transform, frame_transform = get_transforms(augs)
 
     background_paths = [curr_background.image_path for curr_background in req_backgrounds]
@@ -124,17 +138,12 @@ def process_video(sly_progress, state, is_preview=True):
                                 duration=duration,
                                 fps=fps,
                                 movement_laws=movement_laws,
-                                self_overlay=tuple(state['objectOverlayInterval']),
-                                speed_interval=tuple(state['speedInterval']),
-                                project_name=state["dstProjectName"],
-                                ds_name=state["dstDatasetName"],
-                                project_id=state["dstProjectId"],
-                                ds_id=state["selectedDatasetName"],
+                                state=state,
                                 upload_ann=False if is_preview else True,
-                                sly_progress=sly_progress
+                                sly_progress=sly_progress,
                                 )
 
-    if custom_scene.ann_keeper.project:
+    if not is_preview:
         return custom_scene.ann_keeper.project.id
 
 
