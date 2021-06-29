@@ -1,0 +1,50 @@
+{
+    "pipeline": [
+        {
+            "category": "geometric",
+            "name": "ScaleX",
+            "params": {
+                "scale": [
+                    0.5,
+                    1.5
+                ],
+                "order": 1,
+                "cval": 0,
+                "mode": "constant",
+                "fit_output": true
+            },
+            "python": "iaa.geometric.ScaleX(scale=(0.5, 1.5), order=1, cval=0, mode='constant', fit_output=True)"
+        },
+        {
+            "category": "geometric",
+            "name": "ScaleY",
+            "params": {
+                "scale": [
+                    0.5,
+                    1.5
+                ],
+                "order": 1,
+                "cval": 0,
+                "mode": "constant",
+                "fit_output": true
+            },
+            "python": "iaa.geometric.ScaleY(scale=(0.5, 1.5), order=1, cval=0, mode='constant', fit_output=True)"
+        },
+        {
+            "category": "geometric",
+            "name": "Rotate",
+            "params": {
+                "rotate": [
+                    -180,
+                    180
+                ],
+                "order": 1,
+                "cval": 0,
+                "mode": "constant",
+                "fit_output": true
+            },
+            "python": "iaa.geometric.Rotate(rotate=(-180, 180), order=1, cval=0, mode='constant', fit_output=True)"
+        }
+    ],
+    "random_order": false
+}

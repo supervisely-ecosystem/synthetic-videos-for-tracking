@@ -1,0 +1,22 @@
+{
+    "classes": [
+        {
+            "title": "border_test",
+            "shape": "bitmap",
+            "color": "#F2721C",
+            "geometry_config": {},
+            "id": 57936,
+            "hotkey": ""
+        },
+        {
+            "title": "lemon",
+            "shape": "bitmap",
+            "color": "#51C6AA",
+            "geometry_config": {},
+            "id": 41282,
+            "hotkey": ""
+        }
+    ],
+    "tags": [],
+    "projectType": "images"
+}

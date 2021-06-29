@@ -1,15 +1,17 @@
 from functions_background import *
 from functions_objects import *
 from functions_video import *
+from movement_laws import *
+
+from augmentations import get_transforms
 
 from functions_ann_keeper import AnnotationKeeper
 
-from movement_laws import *
+from init_ui import *
 
-import imgaug.augmenters as iaa
+import random
 
-import numpy
-
+import copy
 
 
 class Scene:
@@ -18,93 +20,147 @@ class Scene:
         self.width = width
         self.height = height
         self.backgrounds = []
-        self.objects = []
+
+        self.base_primitives = []
+        self.base_primitives_backup = []
+
+        self.req_objects_num = {}
+
         self.object_general_transforms = object_general_transforms
         self.object_minor_transforms = object_minor_transforms
         self.frame_transform = frame_transform
 
-    def add_background(self, background_path):
-        self.backgrounds.append(get_cv2_background_by_path(background_path))
-        logger.info('background successfully added')
+        self.ann_keeper = None
 
-    def add_objects(self, project_path, dataset_name):
-        extracted_objects = get_objects_list_for_project(project_path, dataset_name)
-        self.objects.extend(extracted_objects)
+    def add_backgrounds(self, background_paths):
+        for background_path in background_paths:
+            self.backgrounds.append(get_cv2_background_by_path(background_path))
+        logger.info(f'{len(self.backgrounds)} backgrounds successfully added')
 
-        logger.info(f'[{len(extracted_objects)}] objects from {project_path}/{dataset_name} successfully added')
+    def add_objects(self, req_objects, state):
+
+        self.base_primitives = get_objects_list_for_project(req_objects)
+        self.base_primitives_backup = get_objects_list_for_project(req_objects)
+        self.req_objects_num = state['classCounts']
+
+        logger.info(f'[{len(self.base_primitives)}] objects successfully added')
         logger.info(f'available objects:\n'
-                    f'{get_available_objects(self.objects)}\n')
+                    f'{get_available_objects(self.base_primitives)}\n')
 
-    def generate_video(self, video_path, fps, duration, objects_dict, movement_laws, self_overlay,
-                       speed_interval, project_id):
-        temp_objects = load_required_objects(objects_dict, self.objects)
-        initialize_controllers(temp_objects, movement_laws, speed_interval,
-                                                               self_overlay, self.backgrounds[0].shape,
-                               general_transforms=self.object_general_transforms,
-                               minor_transforms=self.object_minor_transforms)
+    def generate_video(self, video_path, fps, duration, movement_laws, state, upload_ann=False, sly_progress=None):
 
-        ann_keeper = AnnotationKeeper(video_shape=self.backgrounds[0].shape,
-                                      current_objects=temp_objects,
-                                      project_id=project_id)
+        self_overlay = tuple(state['objectOverlayInterval'])
+        speed_interval = tuple(state['speedInterval'])
+        project_name = state["dstProjectName"]
+        ds_name = state["dstDatasetName"]
+        project_id = state["dstProjectId"]
+        ds_id = state["selectedDatasetName"]
 
-        frames = generate_frames(fps, duration, self.backgrounds[0], temp_objects, ann_keeper, self.frame_transform)
-        video_shape = (self.backgrounds[0].shape[1], self.backgrounds[0].shape[0])
-        write_frames_to_file(video_path, fps, frames, video_shape)
-        ann_keeper.upload_annotation(video_path)
+        sly_progress_backgrounds = SlyProgress(api, task_id, 'progress4')
+        sly_progress_backgrounds.refresh_params('Video', len(self.backgrounds))
+
+        for curr_background in self.backgrounds:
+
+            temp_objects = copy.deepcopy(self.base_primitives)
+            temp_objects = generate_base_primitives(temp_objects, self.req_objects_num,
+                                                    curr_background, self.object_general_transforms,
+                                                    state['canResize'])
+            if len(temp_objects) > 0:
+                initialize_controllers(temp_objects, movement_laws, speed_interval,
+                                       self_overlay, curr_background.shape,
+                                       general_transforms=self.object_general_transforms,
+                                       minor_transforms=self.object_minor_transforms)
+
+                self.ann_keeper = AnnotationKeeper(video_shape=curr_background.shape,
+                                                   current_objects=temp_objects)
+
+                frames = generate_frames(fps, duration, curr_background, temp_objects, self.ann_keeper,
+                                         self.frame_transform,
+                                         sly_progress)
+
+                if not frames:
+                    return -3
+
+                video_shape = (curr_background.shape[1], curr_background.shape[0])
+                write_frames_to_file(video_path, fps, frames, video_shape, sly_progress)
+
+                if upload_ann:
+
+                    self.ann_keeper.init_project_remotely(project_id=project_id, project_name=project_name,
+                                                          ds_id=ds_id, ds_name=ds_name)
+                    self.ann_keeper.upload_annotation(video_path, sly_progress)
+                    project_id = self.ann_keeper.project.id
+                    ds_id = self.ann_keeper.dataset.name
 
 
-project_path = './objects/lemons_annotated'
-# project_path = './objects/small_squares'
-dataset_name = 'ds1'
+                sly_progress_backgrounds.next_step()
+            else:
+                return -2
+        return 0
 
-for i in range(1, 11):
 
-# i = 5
-    div = 0.02 * i
+def process_video(sly_progress, state, is_preview=True):
+    req_objects = load_dumped('req_object.pkl')
+    req_backgrounds = load_dumped('req_backgrounds.pkl')
+    augs = load_dumped('augmentations.pkl')
 
-    general_transform = iaa.Sequential([
-        iaa.Resize((1 - div * 1.2, 1 + div * 1.2)),
-        iaa.Rot90((1, 4), keep_size=False),
-        iaa.Rotate(rotate=(-5 - i * 5, 5 + i * 5), fit_output=True)
-    ])
+    base_transform, minor_transform, frame_transform = get_transforms(augs)
 
-    minor_transform = iaa.Sequential([
-        # iaa.Affine(rotate=(-5 - i, 5 + i)),
-        iaa.Resize((1 - div * 1.2, 1 + div * 1.2)),
-        iaa.Rotate(rotate=(-45 - i * 5, 45 + i * 5), fit_output=True),
-        iaa.AddToHueAndSaturation((int(-10 - i * 1.3), int(10 + i * 1.3))),
-        iaa.AddToBrightness((-2 - i * 2, 2 + i * 2)),
-        iaa.AdditiveGaussianNoise(scale=(0, 10 + i * 1.5)),
-        iaa.MotionBlur(k=(10, int(20 + i * 1.5)))
-        # iaa.ElasticTransformation(alpha=90, sigma=9),
-    ])
+    background_paths = [curr_background.image_path for curr_background in req_backgrounds]
 
-    frame_transform = iaa.Sometimes(0.3, iaa.Sequential([
-        iaa.AddToHueAndSaturation((int(-10 - i * 1.3), int(10 + i * 1.3))),
-        iaa.AddToBrightness((-2 - i * 2, 2 + i * 2)),
-        iaa.AdditiveGaussianNoise(scale=(0, 10 + i * 2)),
-        iaa.MotionBlur(k=(10, int(20 + i * 1.5)))
-        # iaa.ElasticTransformation(alpha=90, sigma=9),
-    ]))
-
-    custom_scene = Scene(object_general_transforms=general_transform, object_minor_transforms=minor_transform,
+    custom_scene = Scene(object_general_transforms=base_transform, object_minor_transforms=minor_transform,
                          frame_transform=frame_transform)
-    custom_scene.add_background(f'./background_img/{i}.jpg')
 
-    custom_scene.add_objects(project_path, dataset_name)
+    if is_preview:
+        custom_scene.add_backgrounds([background_paths[random.randint(0, len(background_paths) - 1)]])
+        # custom_scene.add_backgrounds([background_paths[0]])
+    else:
+        custom_scene.add_backgrounds(background_paths)
 
-    fps = 5 + i * 5
-    custom_scene.generate_video(video_path=f'./test{i}_{fps}fps.mp4',
-                                duration=int(900 / fps),
-                                fps=fps,
-                                # objects_dict={'lemon': numpy.random.randint(2, 6)},
-                                objects_dict={'lemon': 1, 'kiwi': 1},
-                                # objects_dict={'square': 4},
-                                movement_laws=[{'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
-                                               {'law': LinearLaw, 'params': ()}],
+    custom_scene.add_objects(req_objects, state)
 
-                                self_overlay=0.4 + numpy.random.uniform(-0.1, 0.2),
-                                speed_interval=(5, 32),
-                                project_id=4922
-    )
+    fps = state['fps']
 
+    if is_preview:
+        duration = state['durationPreview']
+    else:
+        duration = state['durationVideo']
+
+    if is_preview:
+        video_path = os.path.join(app.data_dir, './preview.mp4')
+    else:
+        video_path = os.path.join(app.data_dir, f'./{duration}sec_{fps}fps.mp4')
+
+    movement_laws = load_movements_laws(custom_scene=custom_scene,
+                                        req_laws={'linearLaw': state['linearLaw'],
+                                                  'randomLaw': state['randomLaw']})
+
+    rc = custom_scene.generate_video(video_path=video_path,  # generate video
+                                     duration=duration,
+                                     fps=fps,
+                                     movement_laws=movement_laws,
+                                     state=state,
+                                     upload_ann=False if is_preview else True,
+                                     sly_progress=sly_progress,
+                                     )
+    if rc < 0:
+        return rc, -1
+
+    if not is_preview:
+        return rc, custom_scene.ann_keeper.project.id
+
+    return rc, None
+
+
+@app.callback("apply_synth_settings")
+@sly.timeit
+@app.ignore_errors_and_show_dialog_window()
+def apply_synth_settings(api: sly.Api, task_id, context, state, app_logger):
+    fields = [
+        {"field": "state.done4", "payload": True},
+        {"field": "state.collapsed5", "payload": False},
+        {"field": "state.disabled5", "payload": False},
+        {"field": "state.activeStep", "payload": 5},
+    ]
+    api.app.set_fields(task_id, fields)
+    api.app.set_field(task_id, "data.scrollIntoView", f"step{5}")

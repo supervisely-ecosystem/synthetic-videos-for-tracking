@@ -51,3 +51,18 @@ class RandomWalkingLaw:
         return abs(self.f(x) - self.f(x - 1)) / self.y_muffler
 
 
+def load_movements_laws(custom_scene, req_laws):
+    chosen_laws = []
+
+    laws = {
+        'linearLaw': {'law': RandomWalkingLaw, 'params': custom_scene.backgrounds[0].shape},
+        'randomLaw': {'law': LinearLaw, 'params': ()},
+    }
+
+    for law_name, law_status in req_laws.items():
+        if law_status:
+            chosen_laws.append(laws[law_name])
+
+    return chosen_laws
+
+

@@ -1,0 +1,20 @@
+{
+  "name": "vSynth",
+  "type": "app",
+  "categories": [
+    "Synthetic Data",
+    "Videos"
+  ],
+  "description": "synth videos on annotated data",
+  "docker_image": "supervisely/base-py-sdk:6.1.80",
+  "main_script": "/src/main.py",
+  "gui_template": "/src/gui.html",
+  "task_location": "workspace_tasks",
+  "isolate": true,
+  "icon": "https://i.imgur.com/nMhn7qf.png",
+  "icon_background": "#FFFFFF",
+  "context_menu": {
+    "target": ["images_project"],
+    "context_category": "Transform"
+  }
+}

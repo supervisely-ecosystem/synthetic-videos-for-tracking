@@ -1,0 +1,133 @@
+<sly-card
+        class="mb15"
+        title="Output Project"
+        subtitle="Define result project name, press Run and monitor progress"
+        :disabled="{disabled: state.disabled5, message: 'complete stage 4 to unlock'}"
+        :options="{collapsable: true}"
+        :collapsed.sync="state.collapsed5"
+        ref="step5" style="width: 100%">
+
+    <sly-field title="">
+        <h3 style="margin-top: 5px">Result project</h3>
+        <div class="fflex" class="mb15 mt15">
+
+            <el-radio class="radio"
+                      v-model="state.dstProjectMode"
+                      label="newProject"
+                      @input="(val) => {
+                            if (val === 'newProject') {
+                                state.dstDatasetMode = 'newDataset';
+                            }
+                          }"
+            >
+                Create new project
+            </el-radio>
+            <el-radio class="radio" v-model="state.dstProjectMode" label="existingProject">Add to existing project
+            </el-radio>
+        </div>
+        <div class="mt5">
+            <div v-if="state.dstProjectMode === 'newProject'">
+                <el-input placeholder="Please input project name" v-model="state.dstProjectName"></el-input>
+
+            </div>
+            <div v-if="state.dstProjectMode === 'existingProject'">
+                <sly-select-project
+                        :workspace-id="data.workspaceId"
+                        :project-id.sync="state.dstProjectId"
+                        :options="{showLabel: false, availableTypes: ['videos']}"
+                >
+                </sly-select-project>
+            </div>
+        </div>
+    </sly-field>
+    <sly-field title=""
+    >
+        <h3>Result dataset</h3>
+        <div class="fflex" class="mb15 mt15">
+            <el-radio class="radio" v-model="state.dstDatasetMode" label="newDataset">Create new dataset</el-radio>
+            <el-radio class="radio"
+                      v-model="state.dstDatasetMode"
+                      label="existingDataset"
+                      :disabled="state.dstProjectMode === 'newProject'">
+                Add to existing dataset
+            </el-radio>
+        </div>
+        <div class="mt5">
+            <div v-if="state.dstDatasetMode === 'newDataset'">
+                <el-input placeholder="Please input dataset name" v-model="state.dstDatasetName"></el-input>
+
+            </div>
+            <div v-if="state.dstDatasetMode === 'existingDataset'">
+                <sly-select-dataset
+                        :project-id="state.dstProjectId"
+                        :datasets.sync="state.selectedDatasetName"
+                        :options="{showLabel: false}"
+                >
+                </sly-select-dataset>
+            </div>
+        </div>
+    </sly-field>
+
+    <div v-if="data.progressName1" class="mt10">
+        <div>{{ data.progressName1 }}: {{ data.currentProgressLabel1 }} / {{ data.totalProgressLabel1 }}</div>
+        <el-progress :percentage="Math.round(data.currentProgress1 * 100 / data.totalProgress1)"></el-progress>
+    </div>
+    <div v-if="data.progressName2" class="mt10">
+        <div>{{ data.progressName2 }}: <b><span style="color: #20a0ff">{{ data.currentProgressLabel2 }}</span> /
+            {{ data.totalProgressLabel2 }}</b></div>
+        <el-progress :percentage="Math.round(data.currentProgress2 * 100 / data.totalProgress2)"></el-progress>
+    </div>
+    <div>
+        <el-button
+                type="primary"
+                class="regular"
+                :disabled="(state.dstProjectMode === 'newProject' && state.dstProjectName.length === 0) ||
+                            (state.dstProjectMode === 'existingProject' && !state.dstProjectId) ||
+                            (state.dstDatasetMode === 'newDataset' && state.dstDatasetName.length === 0) ||
+                            (state.dstDatasetMode === 'existingDataset' && !state.selectedDatasetName)"
+
+                :loading="state.step5Loading"
+                @click="state.step5Loading=true; state.done5=false; command('synthesize')"
+                v-if="true">
+            synthesize
+
+
+        </el-button>
+        <div v-if="state.done5">
+            <div style="margin-top: 15px;">
+
+                <i class="zmdi zmdi-check-circle mr5 mb10 mt10" style="color: #13ce66"></i>
+                <span style="color: #5a6772;">Synthesize completed</span>
+
+
+                <sly-field style="padding-top: 10px;"
+                           v-if="data.dstProjectId"
+                           title="Project preview"
+                           description="Synthesize configuration is saved in project info (metadata) as json">
+                    <sly-field title="" description="Project">
+                        <a slot="title" target="_blank"
+                           :href="`/projects/${data.dstProjectId}/datasets`">{{ data.dstProjectName }}</a>
+                        <sly-icon slot="icon" :options="{ imageUrl: `${data.dstProjectPreviewUrl}` }"/>
+                    </sly-field>
+                </sly-field>
+            </div>
+        </div>
+
+        <div v-if="state.step5Loading" class="mt15">
+            <div>{{ data.progress4Message }}: <b><span
+                    style="color: #20a0ff">{{ data.progress4Current }}</span> /
+                {{ data.progress4Total }}</b></div>
+            <el-progress
+                    :percentage="Math.round(data.progress4Current * 100 / data.progress4Total)"></el-progress>
+        </div>
+
+        <div v-if="state.step5Loading" class="mt10">
+            <div>{{ data.progressSynthMessage }}: <b><span
+                    style="color: #20a0ff">{{ data.progressSynthCurrent }}</span> /
+                {{ data.progressSynthTotal }}</b></div>
+            <el-progress
+                    :percentage="Math.round(data.progressSynthCurrent * 100 / data.progressSynthTotal)"></el-progress>
+        </div>
+    </div>
+</sly-card>
+
