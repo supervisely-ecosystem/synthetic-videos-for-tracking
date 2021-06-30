@@ -156,20 +156,21 @@ def write_frames_to_file(video_name, fps, frames, video_shape, sly_progress=None
     fourcc = cv2.VideoWriter_fourcc(*'VP90')
     video = cv2.VideoWriter(video_name, fourcc, fps, video_shape)
 
-    if sly_progress:
-        sly_progress.refresh_params('Generating video file', len(frames))
 
-    for frame in tqdm(frames, desc='Generating video file: '):
+    sly_progress.refresh_params('Generating video file', len(frames))
+
+#     for frame in tqdm(frames, desc='Generating video file: '):
+    for frame in frames:
         video.write(frame)
-        if sly_progress:
-            sly_progress.next_step()
+    
+        sly_progress.next_step()
 
-    if sly_progress:
-        sly_progress.refresh_params('Saving video file', 1)
+
+    sly_progress.refresh_params('Saving video file', 1)
 
     video.release()
 
-    if sly_progress:
-        sly_progress.next_step()
+
+    sly_progress.next_step()
 
 
