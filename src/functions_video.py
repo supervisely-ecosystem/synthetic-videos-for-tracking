@@ -153,7 +153,7 @@ def write_frames_to_file(video_name, fps, frames, video_shape, sly_progress=None
     :param video_shape: размер видеокадра
     :return: None
     """
-    fourcc = cv2.VideoWriter_fourcc(*'VP80')
+    fourcc = cv2.VideoWriter_fourcc(*'VP90')
     video = cv2.VideoWriter(video_name, fourcc, fps, video_shape)
 
 
