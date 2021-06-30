@@ -1,1 +1,2 @@
 supervisely==6.1.84
+tqdm==4.61.0
