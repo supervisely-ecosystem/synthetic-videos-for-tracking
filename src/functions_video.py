@@ -5,6 +5,8 @@ from movement_laws import *
 from tqdm import tqdm
 import cv2
 from logger import logger
+import subprocess
+
 
 from movement_controller import MovementController
 from sly_warnings import window_warner
@@ -144,18 +146,17 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper=None, fr
     return frames
 
 
-def write_frames_to_file(video_name, fps, frames, video_shape, sly_progress=None):
+def write_frames_to_file(video_path, fps, frames, video_shape, sly_progress=None):
     """
     Записывает кадры в единный видеофайл
-    :param video_name: название видео
+    :param video_path: название видео
     :param fps: количество кадров
     :param frames: кадры, которые нужно склеить
     :param video_shape: размер видеокадра
     :return: None
     """
-    fourcc = cv2.VideoWriter_fourcc(*'VP90')
-    video = cv2.VideoWriter(video_name, fourcc, fps, video_shape)
-
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    video = cv2.VideoWriter(video_path, fourcc, fps, video_shape)
 
     sly_progress.refresh_params('Generating video file', len(frames))
 
@@ -165,11 +166,17 @@ def write_frames_to_file(video_name, fps, frames, video_shape, sly_progress=None
     
         sly_progress.next_step()
 
-
     sly_progress.refresh_params('Saving video file', 1)
 
     video.release()
 
+    if video_path.split('/')[-1] == 'preview.mp4':
+        converted_path = video_path.replace("preview.mp4", "VP90preview.mp4")
+        # ffmpeg -i input.mp4 -c:v libvpx-vp9 -c:a libopus output.webm
+        subprocess.call(['ffmpeg', '-y', '-i', f'{video_path}', '-c:v', 'libvpx-vp9', '-c:a',
+                         'libopus', f'{converted_path}'])
+        os.remove(video_path)
+        os.rename(converted_path, video_path)
 
     sly_progress.next_step()
 
