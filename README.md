@@ -1,9 +1,12 @@
-# SLYvSynth [🍋 + 🛸 = 📼]
-Приложение по синтезированию видео
+# Jumping objects
 
-## Пример [4obj, linearLaw]
-![](./demo/simple_video/demo1.gif)
+<p align="center">
+  <a href="#Overview">Overview</a> •
+  <a href="#How-To-Use">How To Use</a> •
+    <a href="#Screenshots">Screenshots</a>
+</p>
 
-## Диаграмма приложения
 
-![](./diagrams/main.png)
+# Overview
+
+App generates synthetic video data for detection tasks. It copies labeled objects (foregrounds), applies augmentations and pastes them to background images according to the given parameters. 
