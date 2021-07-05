@@ -67,7 +67,7 @@ class AnnotationKeeper:
 
         video_name = video_path.split('/')[-1]
 
-        sly_progress.refresh_params('Uploading video',  sly.fs.get_file_size(video_path))
+        sly_progress.refresh_params('Uploading video',  sly.fs.get_file_size(video_path), is_size=True)
 
         progress_cb = partial(sly_progress.set_progress, api=api, task_id=task_id,
                               progress=sly_progress.pbar)

@@ -30,8 +30,8 @@ class SlyProgress:
         fields = [
             {"field": f"data.{self.pbar_element_name}", "payload": curr_step},
             {"field": f"data.{self.pbar_element_name}Message", "payload": self.pbar.message},
-            {"field": f"data.{self.pbar_element_name}Current", "payload": self.pbar.current},
-            {"field": f"data.{self.pbar_element_name}Total", "payload": self.pbar.total},
+            {"field": f"data.{self.pbar_element_name}Current", "payload": self.pbar.current_label},
+            {"field": f"data.{self.pbar_element_name}Total", "payload": self.pbar.total_label},
         ]
         self.api.task.set_fields(self.task_id, fields)
 
@@ -53,6 +53,7 @@ class SlyProgress:
             progress.set(monitor.bytes_read, monitor.len, report=False)
         else:
             progress.set_current_value(monitor.bytes_read, report=False)
+
         self.refresh_progress()
 
     def update_progress(self, count, api: sly.Api, task_id, progress: sly.Progress):
@@ -64,7 +65,6 @@ class SlyProgress:
             self.refresh_progress()
 
     def set_progress(self, current, api: sly.Api, task_id, progress: sly.Progress):
-
         old_value = progress.current
         delta = current - old_value
         self.update_progress(delta, api, task_id, progress)
