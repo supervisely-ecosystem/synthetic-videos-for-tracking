@@ -48,13 +48,13 @@ def init_settings(data, state):
     state["previewLoading"] = False
 
     state["speedInterval"] = [5, 20]
-    state["objectOverlayInterval"] = [0.4, 0.6]
+    state["objectOverlayInterval"] = [0.7, 1]
     state["linearLaw"] = True
     state["randomLaw"] = True
     state["fps"] = 25
     # state["fps"] = 10
 
-    state["durationPreview"] = 1
+    state["durationPreview"] = 3
     state["durationVideo"] = 60
     # state["durationVideo"] = 1
 
@@ -142,7 +142,6 @@ def init_objects_table(data, state):
 
         data[f"myColumns{flag}"] = pos_columns if flag == 'Pos' else neg_columns
         data[f"myRows{flag}"] = rows
-
 
         state[f"labeledImages{flag}"] = {
             row['Name']: 0 for row in rows

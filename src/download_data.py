@@ -252,7 +252,7 @@ def download_backgrounds_ann(api: sly.Api, task_id, context, state, app_logger):
 
 @app.callback("download_objects")
 @sly.timeit
-# @app.ignore_errors_and_show_dialog_window()
+@app.ignore_errors_and_show_dialog_window()
 def download_objects(api: sly.Api, task_id, context, state, app_logger):
     sly_progress = SlyProgress(api, task_id, 'progressDownloadObjects')
 
@@ -312,7 +312,7 @@ def download_objects(api: sly.Api, task_id, context, state, app_logger):
 
 @app.callback("download_objects_annotations")
 @sly.timeit
-# @app.ignore_errors_and_show_dialog_window()
+@app.ignore_errors_and_show_dialog_window()
 def download_objects_annotations(api: sly.Api, task_id, context, state, app_logger):
     ann_info = get_project_ann_info(project_id=project_id,
                                             dataset_names=None,
@@ -335,7 +335,7 @@ def download_objects_annotations(api: sly.Api, task_id, context, state, app_logg
 
 @app.callback("load_objects_stats")
 @sly.timeit
-# @app.ignore_errors_and_show_dialog_window()
+@app.ignore_errors_and_show_dialog_window()
 def load_objects_stats(api: sly.Api, task_id, context, state, app_logger):
     global objects_ann_info
     fill_tables_by_objects(state, objects_ann_info)
