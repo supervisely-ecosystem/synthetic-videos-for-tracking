@@ -1,19 +1,17 @@
-import supervisely_lib as sly
-import numpy
-import cv2
-import os
-
 from sly_globals import *
 
-from logger import logger
-
+import cv2
+import copy
+import random
 import augmentations
 
-from sly_warnings import *
-
-from functions_background import *
+from sly_warnings import window_warner
 
 import imgaug.augmenters as iaa
+
+from functions_background import object_larger_than_background
+
+
 
 class ExtractedObject:
     """
@@ -99,23 +97,20 @@ def generate_base_primitives(extracted_objects, req_counts, curr_background, bas
 
         curr_label_count = 0
         while curr_label_count < count:
-            for extracted_object in extracted_objects:
+            temp_extracted_objects = copy.deepcopy(extracted_objects)
+            for extracted_object in temp_extracted_objects:
                 if extracted_object.class_name == label:
-                    curr_object_backup = extracted_object
-
                     for tries in range(10):
-                        curr_object = curr_object_backup
-
                         if base_transform:
-                            augmentations.transform_object(curr_object, base_transform, True)
+                            augmentations.transform_object(extracted_object, base_transform, True)
 
-                        if not object_larger_than_background(curr_object.image, curr_background):
+                        if not object_larger_than_background(extracted_object.image, curr_background):
                             break
 
                         if can_resize:
-                            reduce_object_size(curr_object_backup)
+                            reduce_object_size(extracted_object)
 
-                        if not object_larger_than_background(curr_object.image, curr_background):
+                        if not object_larger_than_background(extracted_object.image, curr_background):
                             break
 
                     else:
@@ -126,7 +121,7 @@ def generate_base_primitives(extracted_objects, req_counts, curr_background, bas
                                               {"field": "data.videoUrl", "payload": None}])
                         return []
 
-                    temp_objects.append(curr_object)
+                    temp_objects.append(extracted_object)
                     curr_label_count += 1
 
                 if curr_label_count == count:
@@ -188,3 +183,14 @@ def load_objects_images(req_objects):
 
     return objects_images
 
+
+def generate_object_counts(min_count, max_count):
+    object_counts = {}
+    while sum(object_counts.values()) == 0:
+        for label, min_value in min_count.items():
+            object_counts[label] = random.randint(min_value, max_count[label])
+    #
+    # if sum(object_counts.values()) == 0:
+    #     generate_object_counts(min_count, max_count)
+
+    return object_counts

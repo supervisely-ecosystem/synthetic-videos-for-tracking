@@ -1,14 +1,12 @@
-import os
-import pickle
+from sly_globals import *
+
 import random
 import numpy
-
 import cv2
 
 from functions_objects import get_objects_list_for_project
 from movement_controller import find_mask_tight_bbox
-
-from sly_globals import *
+from download_data import download_images
 
 from supervisely_lib.app.widgets import CompareGallery
 
@@ -61,7 +59,7 @@ def base_augs_handler(api: sly.Api, task_id, context, state, app_logger):
 
 @app.callback("minor_augs_handler")
 @sly.timeit
-@app.ignore_errors_and_show_dialog_window()
+# @app.ignore_errors_and_show_dialog_window()
 def base_augs_handler(api: sly.Api, task_id, context, state, app_logger):
     preview_augs(state, 'Minor')
 
@@ -100,12 +98,13 @@ def preview_augs(state, augmentation_type):
     ]
     api.app.set_fields(task_id, fields)
 
-    req_objects = load_dumped('req_object.pkl')
+    req_objects = load_dumped('req_objects.pkl')
+    random.shuffle(req_objects)
+    req_objects = [req_objects[0]]
 
     if augmentation_type == 'Frame':
         req_objects = load_dumped('req_backgrounds.pkl')
-
-    req_objects = req_objects[random.randint(0, len(req_objects)) - 1]
+        download_images(req_objects, 'backgrounds')
 
     if state[f"augs{augmentation_type}Type"] == "template":
         gallery = gallery_template
@@ -115,7 +114,7 @@ def preview_augs(state, augmentation_type):
         augs_ppl = custom_pipeline
 
     if augmentation_type == 'Frame':
-        image, ann = get_frame_image(req_objects)
+        image, ann = get_frame_image(req_objects[0])
         ann = sly.Annotation(image.shape)
     else:
         image, ann = get_image_and_ann(req_objects)
@@ -163,7 +162,7 @@ def get_frame_image(req_objects):
 
 
 def get_image_and_ann(req_objects):
-    temp_object = get_objects_list_for_project([req_objects])[0]
+    temp_object = get_objects_list_for_project(req_objects)[0]
     temp_object.image = cv2.cvtColor(temp_object.image, cv2.COLOR_BGR2RGB)
     temp_object.image = cv2.bitwise_and(temp_object.image, temp_object.image,
                                         mask=temp_object.mask.astype(numpy.uint8) * 255)
@@ -238,7 +237,7 @@ def init_augs(data, state):
 
         state[f"augs{aug_type}TemplateName"] = templates_info[0]["name"]
 
-        state[f"custom{aug_type}AugsPath"] = ""  # "/svs-heavy-no-fliplr.json"  # @TODO: for debug
+        state[f"custom{aug_type}AugsPath"] = ""  # "/objects-to-video-synthesizer-heavy-no-fliplr.json"  # @TODO: for debug
         data[f"custom{aug_type}AugsPy"] = None
 
         gallery_template = CompareGallery(task_id, api, f"data.gallery{aug_type}1", project_meta)
@@ -287,12 +286,12 @@ def use_augs(api: sly.Api, task_id, context, state, app_logger):
     dump_req(applied_augs, 'augmentations.pkl')
 
     fields = [
-        {"field": "state.done3", "payload": True},
-        {"field": "state.collapsed4", "payload": False},
-        {"field": "state.disabled4", "payload": False},
-        {"field": "state.activeStep", "payload": 4},
+        {"field": "state.done4", "payload": True},
+        {"field": "state.collapsed5", "payload": False},
+        {"field": "state.disabled5", "payload": False},
+        {"field": "state.activeStep", "payload": 5},
     ]
-    api.app.set_field(task_id, "data.scrollIntoView", f"step{4}")
+    api.app.set_field(task_id, "data.scrollIntoView", f"step{5}")
     api.app.set_fields(task_id, fields)
 
 

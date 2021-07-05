@@ -1,15 +1,10 @@
-import random
-import numpy
-import sys
-
 from sly_globals import *
-from init_ui import *
-from scene import *
-from download_data import *
-
-from functions_background import *
 
 from functools import partial
+
+from init_ui import init_ui
+from download_data import SlyProgress
+from functions_video import process_video
 
 
 @app.callback("preview")
@@ -38,6 +33,7 @@ def preview(api: sly.Api, task_id, context, state, app_logger):
         file_info = api.file.upload(team_id, video_path, remote_video_path, progress_cb=progress_cb)
 
         sly_progress.next_step()
+        sly_progress.reset_params()
 
         fields = [
             {"field": "data.videoUrl", "payload": file_info.full_storage_url},
@@ -50,7 +46,6 @@ def preview(api: sly.Api, task_id, context, state, app_logger):
             {"field": "state.previewLoading", "payload": False},
         ]
         api.task.set_fields(task_id, fields)
-
 
 
 def reset_output_headers_by_state(state):
@@ -70,12 +65,13 @@ def synthesize(api: sly.Api, task_id, context, state, app_logger):
 
     rc, res_project_id = process_video(sly_progress, state, is_preview=False)
 
+    sly_progress.reset_params()
     if rc == 0:
         res_project = api.project.get_info_by_id(res_project_id)  # load full project info
 
         fields = [
-            {"field": "state.step5Loading", "payload": False},
-            {"field": "state.done5", "payload": True},
+            {"field": "state.step6Loading", "payload": False},
+            {"field": "state.done6", "payload": True},
 
             {"field": "data.dstProjectId", "payload": res_project.id},
             {"field": "data.dstProjectName", "payload": res_project.name},
@@ -87,7 +83,7 @@ def synthesize(api: sly.Api, task_id, context, state, app_logger):
 
     else:
         fields = [
-            {"field": "state.step5Loading", "payload": False},
+            {"field": "state.step6Loading", "payload": False},
         ]
         api.task.set_fields(task_id, fields)
 

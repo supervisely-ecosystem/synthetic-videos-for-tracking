@@ -1,81 +1,180 @@
 <sly-card
         title="Select objects"
 
-        subtitle="Select a set of base primitives"
+        subtitle="Select a set of base primitives. Only bitmap shapes are available now."
         :options="{collapsable: true}"
         :collapsed.sync="state.collapsed2"
         :disabled="{disabled: state.disabled2, message: 'complete stage 1 to unlock'}"
         ref="step2"
 >
 
-    <sly-field title="" description="Input project" class="mt15 mb15">
-        <a slot="title" target="_blank"
-           :href="`/projects/${data.projectId}/datasets`">{{ data.projectName }} ({{ data.projectImagesCount }}
-            images)</a>
-        <sly-icon slot="icon" :options="{ imageUrl: `${data.projectPreviewUrl}` }"/>
-    </sly-field>
+    <div class="fflex" style="flex-direction: column; align-items: flex-start;">
+        <div v-if="state.loadStats && data.myRowsPos.length == 0" class="fflex" style="flex-direction: column;">
+            <!--            <h2 style="margin-bottom: 4px"><i class="zmdi zmdi-alert-triangle ml5 mr10" style="color: #ea5809;"></i>Objects-->
+            <!--                that can be used not found</h2>-->
+            <!--            <a target="_blank" slot="title"-->
+            <!--           :href="`/projects/${data.projectId}/datasets`" style="color: #7f858e; font-weight: normal; align-self: flex-start; text-align: left; padding-left: 37px; font-size: 13px;">-->
+            <!--                please reselect input project-->
+            <!--            </a>-->
+
+            <sly-field title="Warning: Objects that can be used not found"
+                       description="please reselect input project">
+                <sly-icon slot="icon" :options="{ color: '#fba607', bgColor: '#ffe9da', rounded: false }">
+                    <i class="zmdi zmdi-alert-triangle"></i>
+                </sly-icon>
+            </sly-field>
+
+        </div>
+        <div v-if="state.loadStats && data.myRowsPos.length != 0" style="width: 100%; padding-bottom: 25px">
+            <!--        <div v-if="" style="width: 100%">-->
+            <div v-if="data.myRowsPos.length != 0 && data.myRowsNeg.length != 0" class="fflex"
+                 style="flex-direction: column;">
+                <h4 style="margin-top: 5px; align-self: flex-start; text-align: left;">
+                    <i class="zmdi zmdi-info mr5" style="color: #63b605;"></i>Can be used:</h4>
+            </div>
 
 
-    <div class="fflex mt25 mb15" style="align-items: stretch" >
+            <table class="beautiful-table" style="width: 100%">
+                <thead>
+                <tr>
+                    <th v-for="col in data.myColumnsPos">
+                        <div v-html="col['title']"></div>
+                        <div style="color: #7f858e; font-weight: normal; font-size: 12px;">
+                            {{ col["subtitle"] }}
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(row, row_index) in data.myRowsPos">
+                    <td v-for="(col, col_index) in data.myColumnsPos">
+
+                        <div v-if="col.title === 'Name'">
+                            {{ row[col.title] }}
+                        </div>
+                        <div v-if="col.title === 'Labeled images'">
+                            {{ state.labeledImagesPos[row.Name] }}
+                        </div>
+                        <div v-if="col.title === 'Labeled objects'">
+                            {{ state.labeledObjectsPos[row.Name] }}
+                        </div>
+                        <div v-if="col.title === 'Shape'">
+                            <i class="zmdi zmdi-shape mr5"></i> {{ row[col.title] }}
+                        </div>
+                        <div v-if="col.title === 'Color'">
+                            <i class="zmdi zmdi-circle mr5" :style="{color: row[col.title]}"></i> {{ row[col.title] }}
+                        </div>
+
+                        <div v-if="col.title === 'Objects count'" class="fflex" style="justify-content: center">
+
+                            <div class="ml10 mr10">
+                                min:
+                                <el-input-number
+
+                                        v-model="state.classCountsMin[row.Name]" :min="0"
+                                        :max="state.classCountsMax[row.Name]"
+                                        size="small"
+                                        :disabled="state.done2"
+                                        size="small"></el-input-number>
+                            </div>
+                            <div class="ml10 mr10">
+                                max:
+                                <el-input-number
+                                        v-model="state.classCountsMax[row.Name]"
+                                        :min="state.classCountsMin[row.Name]"
+                                        size="small"
+                                        :disabled="state.done2"
+                                        size="small"></el-input-number>
+                            </div>
 
 
-        <table class="beautiful-table" style="width: 100%">
-            <thead>
-            <tr>
-                <th v-for="col in data.myColumns">
-                    <div v-html="col['title']"></div>
-                    <div style="color: #7f858e; font-weight: normal; font-size: 12px;">
-                        {{ col["subtitle"] }}
-                    </div>
-                </th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-for="(row, row_index) in data.myRows">
-                <td v-for="(col, col_index) in data.myColumns">
-                    <div v-if="col.title === 'Selected'">
-                        <el-checkbox v-model="state.classChecked[row['Name']]"></el-checkbox>
-                    </div>
-                    <div v-if="col.title === 'Name'">
-                        {{ row[col.title] }}
-                    </div>
-                    <div v-if="col.title === 'Shape'">
-                        <i class="zmdi zmdi-shape mr5"></i> {{ row[col.title] }}
-                    </div>
-                    <div v-if="col.title === 'Color'">
-                        <i class="zmdi zmdi-circle mr5" :style="{color: row[col.title]}"></i> {{ row[col.title] }}
-                    </div>
-                    <div v-if="col.title === 'Count'">
-                        <el-input-number v-model="state.classCounts[row.Name]" :min="0"
-                                         size="small"
-                                         :disabled="state.done2"></el-input-number>
-                    </div>
+                        </div>
 
-                    <div v-if="col.title === 'Positive'">
-                        <el-switch
-                                v-model="state.classIsPositive[row.Name]"
-                                on-text=""
-                                off-text=""
-                                disabled>
-                        </el-switch>
-                    </div>
+                        <div v-if="col.title === 'Positive'">
+                            <el-switch
+                                    v-model="state.classIsPositive[row.Name]"
+                                    on-text=""
+                                    off-text=""
+                                    disabled>
+                            </el-switch>
+                        </div>
 
 
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div v-if="state.loadStats && data.myRowsNeg.length != 0" style=" padding-bottom: 20px">
+            <div v-if="" class="fflex" style="flex-direction: column;">
+                <h4 style="margin-top: 5px; align-self: flex-start; text-align: left;">
+                    <i class="zmdi zmdi-info mr5" style="color: #c10707;"></i>Cannot be used:</h4>
+            </div>
+            <table class="beautiful-table" style="width: 100%">
+                <thead>
+                <tr>
+                    <th v-for="col in data.myColumnsNeg">
+                        <div v-html="col['title']"></div>
+                        <div style="color: #7f858e; font-weight: normal; font-size: 12px;">
+                            {{ col["subtitle"] }}
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(row, row_index) in data.myRowsNeg">
+                    <td v-for="(col, col_index) in data.myColumnsNeg">
+                        <div v-if="col.title === 'Selected'">
+                            <el-checkbox v-model="state.classChecked[row['Name']]"></el-checkbox>
+                        </div>
+                        <div v-if="col.title === 'Name'">
+                            {{ row[col.title] }}
+                        </div>
+                        <div v-if="col.title === 'Labeled images'">
+                            {{ state.labeledImagesNeg[row.Name] }}
+                        </div>
+                        <div v-if="col.title === 'Labeled objects'">
+                            {{ state.labeledObjectsNeg[row.Name] }}
+                        </div>
+                        <div v-if="col.title === 'Shape'">
+                            <i class="zmdi zmdi-shape mr5"></i> {{ row[col.title] }}
+                        </div>
+                        <div v-if="col.title === 'Color'">
+                            <i class="zmdi zmdi-circle mr5" :style="{color: row[col.title]}"></i> {{ row[col.title] }}
+                        </div>
+                        <div v-if="col.title === 'Reason'">
+                            {{ state.reasonNeg[row.Name] }}
+                        </div>
 
 
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div>
+
+
+    <div class="fflex" style="flex-direction: column; align-items: flex-start; width: 100%;">
+        <el-button
+                type="primary"
+                class="regular mt10 mb5"
+                :disabled="false"
+                :loading="state.step2StatsLoading"
+                @click="state.step2StatsLoading=true; command('load_objects_stats')"
+                v-if="!state.loadStats">
+            Load objects stats
+
+
+        </el-button>
         <el-button
                 type="primary"
                 class="regular"
-                :disabled="false"
+                :disabled="data.myRowsPos.length == 0"
                 :loading="state.step2Loading"
                 @click="state.step2Loading=true; command('download_objects')"
-                v-if="!state.done2">
+                v-if="state.loadStats && data.myRowsPos.length != 0 && !state.done2">
             Download
 
 
@@ -84,7 +183,7 @@
             <i class="zmdi zmdi-check-circle mr5 mt10 mb10" style="color: #13ce66"></i>
             <span style="color: #5a6772;">Objects has been successfully downloaded</span>
         </div>
-        <div v-if="state.step2Loading" class="mt15 ">
+        <div v-if="data.progressDownloadObjectsTotal" class="mt15" style="width: 100%">
             <div>{{ data.progressDownloadObjectsMessage }}: <b><span
                     style="color: #20a0ff">{{ data.progressDownloadObjectsCurrent }}</span> /
                 {{ data.progressDownloadObjectsTotal }}</b></div>

@@ -1,6 +1,6 @@
-<div id="v-synth">
+<div id="objects-to-video-synthesizer">
     <sly-style>
-        #svs .el-tabs.el-tabs-cards .el-radio {
+        #objects-to-video-synthesizer .el-tabs.el-tabs-cards .el-radio {
         display: flex;
         align-items: start;
         /*margin-bottom: 10px;*/
@@ -8,12 +8,12 @@
         white-space: normal;
         }
 
-        #svs .el-tabs.el-tabs-cards .el-radio__label div {
+        #objects-to-video-synthesizer .el-tabs.el-tabs-cards .el-radio__label div {
         color: #7f858e;
         font-size: 13px;
         }
 
-        #svs .el-tabs.el-tabs-cards .el-radio__label {
+        #objects-to-video-synthesizer .el-tabs.el-tabs-cards .el-radio__label {
         line-height: 17px;
         }
 
@@ -29,23 +29,28 @@
         text-align: left;
         }
 
-        #svs .el-tabs.el-tabs-cards { border-radius: 4px; box-shadow: none; }
-        #svs .el-tabs.el-tabs-cards .el-tabs__header { background-color: #f6fafd; }
-        #svs .el-tabs.el-tabs-cards .el-tabs__nav { float: none; display: flex; justify-content:
+        #objects-to-video-synthesizer .el-tabs.el-tabs-cards { border-radius: 4px; box-shadow: none; }
+        #objects-to-video-synthesizer .el-tabs.el-tabs-cards .el-tabs__header { background-color: #f6fafd; }
+        #objects-to-video-synthesizer .el-tabs.el-tabs-cards .el-tabs__nav { float: none; display: flex; justify-content:
         space-between; }
-        #svs .el-tabs.el-tabs-cards .el-tabs__item { flex: 1; margin-bottom: -3px; padding: 9px 16px
+        #objects-to-video-synthesizer .el-tabs.el-tabs-cards .el-tabs__item { flex: 1; margin-bottom: -3px; padding: 9px 16px
         13px;
         height: auto; line-height: normal; border-radius: 4px; }
+
+        #objects-to-video-synthesizer .card-vertical-lifter .content-wrapper { height: 100%; }
 
     </sly-style>
 
 
     <sly-stepper :active="state.activeStep">
         <sly-stepper-item>
-            {% include 'src/ui/input_backgrounds.html' %}
+            {% include 'src/ui/input_project.html' %}
         </sly-stepper-item>
         <sly-stepper-item>
             {% include 'src/ui/input_objects.html' %}
+        </sly-stepper-item>
+        <sly-stepper-item>
+            {% include 'src/ui/input_backgrounds.html' %}
         </sly-stepper-item>
         <sly-stepper-item>
             {% include 'src/ui/augmentations.html' %}
@@ -77,7 +82,7 @@
             title="Can resize"
             :visible.sync="state.showCanResizeWindow"
             size="tiny">
-        <span>Some of selected objects are larger than some backgrounds.
+        <span>Some of selected objects are larger than some selected backgrounds.
             Are you allowed to reduce objects to acceptable sizes?</span>
         <span slot="footer" class="dialog-footer">
         <el-button @click="state.canResize = false; command('define_resize_status')">Cancel</el-button>
