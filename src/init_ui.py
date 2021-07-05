@@ -1,59 +1,6 @@
-import os
-import supervisely_lib as sly
-
-from augmentations import init_augs
-
 from sly_globals import *
-
 import math
-
-
-class SlyProgress:
-    def __init__(self, api, task_id, pbar_element_name):
-        self.api = api
-        self.task_id = task_id
-        self.pbar_element_name = pbar_element_name
-        self.pbar = None
-
-    def refresh_params(self, desc, total, is_size=False):
-        self.pbar = sly.Progress(desc, total, is_size=is_size)
-        if self.pbar.total != 0:
-            self.refresh_progress()
-
-    def refresh_progress(self):
-        fields = [
-            {"field": f"data.{self.pbar_element_name}", "payload": math.floor(self.pbar.current * 100 /
-                                                                              self.pbar.total)},
-            {"field": f"data.{self.pbar_element_name}Message", "payload": self.pbar.message},
-            {"field": f"data.{self.pbar_element_name}Current", "payload": self.pbar.current},
-            {"field": f"data.{self.pbar_element_name}Total", "payload": self.pbar.total},
-        ]
-        self.api.task.set_fields(self.task_id, fields)
-
-    def next_step(self):
-        self.pbar.iter_done_report()
-        self.refresh_progress()
-
-    def upload_monitor(self, monitor, api: sly.Api, task_id, progress: sly.Progress):
-        if progress.total == 0:
-            progress.set(monitor.bytes_read, monitor.len, report=False)
-        else:
-            progress.set_current_value(monitor.bytes_read, report=False)
-        self.refresh_progress()
-
-    def update_progress(self, count, api: sly.Api, task_id, progress: sly.Progress):
-        # hack slight inaccuracies in size convertion
-        count = min(count, progress.total - progress.current)
-        progress.iters_done(count)
-        if progress.need_report():
-            progress.report_progress()
-            self.refresh_progress()
-
-    def set_progress(self, current, api: sly.Api, task_id, progress: sly.Progress):
-
-        old_value = progress.current
-        delta = current - old_value
-        self.update_progress(delta, api, task_id, progress)
+from augmentations import init_augs
 
 
 def init_input_project(data, state):
@@ -69,7 +16,10 @@ def init_input_project(data, state):
     state["allDatasets"] = True
 
     state["showCanResizeWindow"] = False
-    state["canResize"] = False
+    state["canResize"] = True  # hardcoded
+    state["loadStats"] = False
+    state["step2StatsLoading"] = False
+
 
 
 
@@ -81,10 +31,10 @@ def init_step_flags(data, state):
     else:
         start_step = 1
 
-    for step in range(start_step, 6):
+    for step in range(start_step, 7):
         state[f'done{step}'] = False
         state[f"step{step}Loading"] = False
-        state[f"disabled{step}"] = True
+        state[f"disabled{step}"] =  True
         state[f'collapsed{step}'] = True
 
     state[f'collapsed1'] = False
@@ -110,6 +60,8 @@ def init_settings(data, state):
 
 
 def init_output_project(data, state):
+    state['videoSynthNum'] = 1
+
     state["dstProjectMode"] = "newProject"
     state["dstProjectName"] = "my_videos"
     state["dstProjectId"] = None
@@ -121,6 +73,19 @@ def init_output_project(data, state):
     data["workspaceId"] = workspace_id
 
     data["dstProjectPreviewUrl"] = None
+
+
+def split_rows(rows):
+    pos_rows = []
+    neg_rows = []
+
+    for row in rows:
+        if row['Shape'] == 'bitmap':
+            pos_rows.append(row)
+        else:
+            neg_rows.append(row)
+
+    return pos_rows, neg_rows
 
 
 def generate_rows_by_ann(ann_meta):
@@ -137,32 +102,68 @@ def generate_rows_by_ann(ann_meta):
 
 
 def init_objects_table(data, state):
-    columns = [
+
+    pos_columns = [
         {"title": "Name", "subtitle": "label in project"},
+        {"title": "Labeled images", "subtitle": "labeled images"},
+        {"title": "Labeled objects", "subtitle": "count of labeled"},
         {"title": "Shape", "subtitle": "shape type"},
         {"title": "Color", "subtitle": "color of mask"},
-        {"title": "Count", "subtitle": "count to add"},
+        {"title": "Objects count", "subtitle": "how many objects this class will be on each frame"},
         {"title": "Positive", "subtitle": "track that object"},
     ]
 
-    data["myColumns"] = columns
+    neg_columns = [
+        {"title": "Name", "subtitle": "label in project"},
+        {"title": "Labeled images", "subtitle": "labeled images"},
+        {"title": "Labeled objects", "subtitle": "count of labeled"},
+        {"title": "Shape", "subtitle": "shape type"},
+        {"title": "Color", "subtitle": "color of mask"},
+        {"title": "Reason", "subtitle": "the reason the object is unavailable"},
+
+    ]
 
     objects_project_meta = api.project.get_meta(id=project_id)
 
     rows = generate_rows_by_ann(objects_project_meta)
 
-    data["myRows"] = rows
+    pos_rows, neg_rows = split_rows(rows)
 
-    state["classCounts"] = {
+    state["classCountsMin"] = {
         row['Name']: 0 for row in rows
     }
+
+    state["classCountsMax"] = {
+        row['Name']: 0 for row in rows
+    }
+
+    for flag in ['Pos', 'Neg']:
+        rows = pos_rows if flag == 'Pos' else neg_rows
+
+        data[f"myColumns{flag}"] = pos_columns if flag == 'Pos' else neg_columns
+        data[f"myRows{flag}"] = rows
+
+
+        state[f"labeledImages{flag}"] = {
+            row['Name']: 0 for row in rows
+        }
+
+        state[f"labeledObjects{flag}"] = {
+            row['Name']: 0 for row in rows
+        }
+
+        state[f"reason{flag}"] = {
+            row['Name']: 'invalid shape type' for row in rows
+        }
+
     state["classIsPositive"] = {
-        row['Name']: True for row in rows
+        row['Name']: True for row in pos_rows
     }
 
 
 def init_progress_bars(data, state):
-    progress_names = ['DownloadBackgrounds', 'DownloadObjects', 'Preview', 'Synth', '4']
+    progress_names = ['DownloadAnnotations', 'DownloadBackgrounds', 'DownloadObjects',
+                      'Preview', 'Synth', '4']
 
     for progress_name in progress_names:
         data[f"progress{progress_name}"] = 0
@@ -190,8 +191,6 @@ def init_interface_by_step(data, state):
 
 
 def init_ui(data, state):
-
-
     init_step_flags(data, state)
 
     init_progress_bars(data, state)

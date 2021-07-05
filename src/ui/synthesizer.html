@@ -1,135 +1,143 @@
-<sly-card title="Synthesizer"
 
-          subtitle="Select video synthesis options"
-          :options="{collapsable: true}"
-          :collapsed.sync="state.collapsed4"
-          :disabled="{disabled: state.disabled4, message: 'complete stage 3 to unlock'}"
-          ref="step4" style="width: 100%">
-    <div class="fflex mt15 mb15" style="align-items: stretch">
 
-        <sly-card class="mr15"
-                  title="Settings"
-                  subtitle="Synth params"
-                  style="min-width: 310px; max-width: 310px;">
+<div class="fflex" style="align-items: stretch;">
 
-            <div class="mt10 mb10 ml10 mr10">
-                <div><b>Objects possible speed by X</b></div>
-                <div class="block">
-                    <el-slider
-                            v-model="state.speedInterval"
-                            range
-                            show-stops
-                            :min="1"
-                            :max="32"
-                            :disabled="state.done4">
-                    </el-slider>
-                </div>
+    <sly-card class="mr15"
+              title="Synthesizer settings"
+              subtitle="Select video synthesis options"
+              :style="[!state.collapsed5 ? {minWidth: '310px', maxWidth: '310px'} : {width: '100%', margin: 0}]"
+              :options="{collapsable: true}"
+              :collapsed.sync="state.collapsed5"
+              :disabled="{disabled: state.disabled5, message: 'complete stage 4 to unlock'}"
+              ref="step5">
+
+        <div class="mt10 mb10 ml10 mr10">
+            <div><b>Objects possible speed by X</b></div>
+            <div class="block">
+                <el-slider
+                        v-model="state.speedInterval"
+                        range
+                        show-stops
+                        :min="1"
+                        :max="32"
+                        :disabled="state.done5">
+                </el-slider>
             </div>
-            <div class="mt10 mb10 ml10 mr10">
-                <div><b>Objects possible overlay</b></div>
+        </div>
+        <div class="mt10 mb10 ml10 mr10">
+            <div><b>Objects possible overlay</b></div>
 
-                <div class="block">
-                    <el-slider
-                            v-model="state.objectOverlayInterval"
-                            range
-                            show-stops
-                            :min="0"
-                            :max="1"
-                            :step="0.1"
-                            :disabled="state.done4">
+            <div class="block">
+                <el-slider
+                        v-model="state.objectOverlayInterval"
+                        range
+                        show-stops
+                        :min="0"
+                        :max="1"
+                        :step="0.1"
+                        :disabled="state.done5">
 
-                    </el-slider>
-                </div>
+                </el-slider>
             </div>
+        </div>
 
 
-            <sly-field style="margin-top: 15px;" title="MovementLaw" description="Select movement law(-s)">
+        <sly-field style="margin-top: 15px;" title="MovementLaw" description="Select movement law(-s)">
 
-                <div class="fflex align-start">
-                    <el-checkbox v-model="state.linearLaw" class="mt10 mr10" :disabled="state.done4"/>
-                    <sly-field class="mt20" title="Linear"
-                               description="Move objects by line">
-                    </sly-field>
-                </div>
-
-                <div class="fflex align-start">
-                    <el-checkbox v-model="state.randomLaw" class="mt10 mr10" :disabled="state.done4"/>
-                    <sly-field class="mt20" title="Random Y"
-                               description="Move objects randomly">
-                    </sly-field>
-                </div>
-
-            </sly-field>
-
-            <div class="mt15 mb15">
-                <div><b>Video FPS</b></div>
-                <el-input-number class="mt5" v-model="state.fps" :min="10" :max="60"
-                                 :disabled="state.done4"></el-input-number>
+            <div class="fflex align-start">
+                <el-checkbox v-model="state.linearLaw" class="mt10 mr10" :disabled="state.done5"/>
+                <sly-field class="mt20" title="Linear"
+                           description="Move objects by line">
+                </sly-field>
             </div>
 
-            <div class="mt15 mb15">
-                <div><b>Video duration</b></div>
-
-                <div class="fflex">
-                    <el-input-number class="mt5" v-model="state.durationVideo" :min="1" :max="999"
-                                     :step="10" :disabled="state.done4"></el-input-number>
-                    <h4 class="ml10 mt25">sec</h4>
-                </div>
+            <div class="fflex align-start">
+                <el-checkbox v-model="state.randomLaw" class="mt10 mr10" :disabled="state.done5"/>
+                <sly-field class="mt20" title="Random Y"
+                           description="Move objects randomly">
+                </sly-field>
             </div>
 
+        </sly-field>
 
-        </sly-card>
-        <sly-card title="Preview"
-                  subtitle="Preview vSynth result"
-                  style="width: 100%">
-            <div slot="header" class="mb10">
-                <div><b style="font-size: 13px">Preview duration</b></div>
+        <div class="mt15 mb15">
+            <div><b>Video FPS</b></div>
+            <el-input-number class="mt5" v-model="state.fps" :min="10" :max="60"
+                             :disabled="state.done5"></el-input-number>
+        </div>
 
+        <div class="mt15 mb15">
+            <div><b>Video duration</b></div>
 
-                <el-input-number class="mt5 mr15" v-model="state.durationPreview" :min="1" :max="10"
-                                 size="small"></el-input-number>
+            <div class="fflex">
+                <el-input-number class="mt5" v-model="state.durationVideo" :min="1" :max="999"
+                                 :step="10" :disabled="state.done5"></el-input-number>
+                <h4 class="ml10 mt25">sec</h4>
+            </div>
+        </div>
 
-                <el-button
-                        type="primary"
-                        @click="state.previewLoading = true; command('preview')"
-                        :loading="state.previewLoading"
-                        :disabled="(!state.linearLaw && !state.randomLaw) || state.done4">
-                    <i class="zmdi zmdi-slideshow" style="margin-right: 5px"></i> Preview
+        <div>
+            <div class="fflex mt15 " v-if="!state.done5">
+                <el-button type="primary" class="regular" @click="command('apply_synth_settings')">Apply settings
                 </el-button>
             </div>
-            <video v-if="data.videoUrl" controls style="max-height: 650px; max-width: 100%;">
-
-                <!--                <source src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">-->
-                <source :src="data.videoUrl" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-            <div v-if="!data.videoUrl && state.previewLoading === false">Press preview to watch demo video</div>
-            <div v-if=""></div>
-
-
-            <div v-if="state.previewLoading" class="mt10">
-                <div>{{ data.progressPreviewMessage }}: <b><span
-                        style="color: #20a0ff">{{ data.progressPreviewCurrent }}</span> /
-                    {{ data.progressPreviewTotal }}</b></div>
-                <el-progress
-                        :percentage="Math.round(data.progressPreviewCurrent * 100 / data.progressPreviewTotal)"></el-progress>
+            <div v-if="state.done5">
+                <i class="zmdi zmdi-check-circle mr5 mt10 mb10" style="color: #13ce66"></i>
+                <span style="color: #5a6772;">Settings has been successfully defined</span>
             </div>
-        </sly-card>
-    </div>
-    <div>
-        <div class="fflex mt15" v-if="!state.done4">
-            <el-button type="primary" class="regular" @click="command('apply_synth_settings')">Apply settings
+            <el-button type="warning" class="regular mt10" :plain="true"
+                       @click="state.restartFrom=5;"
+                       v-if="state.done5">
+                <i class="zmdi zmdi-rotate-left mr5"></i> reselect
             </el-button>
         </div>
-        <div v-if="state.done4">
-            <i class="zmdi zmdi-check-circle mr5 mt10 mb10" style="color: #13ce66"></i>
-            <span style="color: #5a6772;">Settings has been successfully defined</span>
-        </div>
-        <el-button type="warning" class="regular mt10" :plain="true"
-                   @click="state.restartFrom=4;"
-                   v-if="state.done4">
-            <i class="zmdi zmdi-rotate-left mr5"></i> reselect
-        </el-button>
-    </div>
-</sly-card>
 
+    </sly-card>
+
+    <sly-card title="Preview"
+              class="card-vertical-lifter"
+              subtitle="Preview vSynth result"
+              style="width: 100%;"
+              :collapsed.sync="state.collapsed5"
+              :disabled="{disabled: state.disabled5, message: 'complete stage 4 to unlock'}"
+              v-if="!state.collapsed5"
+              ref="step5">
+        <div slot="header" class="mb10">
+            <div><b style="font-size: 13px">Preview duration</b></div>
+
+
+            <el-input-number class="mt5 mr15" v-model="state.durationPreview" :min="1" :max="10"
+                             size="small"
+            :disabled="state.done5 || state.disabled5"></el-input-number>
+
+            <el-button
+                    type="primary"
+                    @click="state.previewLoading = true; command('preview')"
+                    :loading="state.previewLoading"
+                    :disabled="(!state.linearLaw && !state.randomLaw) || state.done5 || state.disabled5">
+                <i class="zmdi zmdi-slideshow" style="margin-right: 5px"></i> Preview
+            </el-button>
+        </div>
+        <video v-if="data.videoUrl" controls style="max-height: 650px; max-width: 100%;">
+
+            <!--                <source src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">-->
+            <source :src="data.videoUrl" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div v-if="!data.videoUrl && state.previewLoading === false">Press preview to watch demo video</div>
+        <div v-if=""></div>
+
+
+        <div v-if="data.progressPreviewTotal" class="mt10">
+            <div>{{ data.progressPreviewMessage }}: <b><span
+                    style="color: #20a0ff">{{ data.progressPreviewCurrent }}</span> /
+                {{ data.progressPreviewTotal }}</b></div>
+            <el-progress
+                    :percentage="Math.round(data.progressPreviewCurrent * 100 / data.progressPreviewTotal)"></el-progress>
+        </div>
+    </sly-card>
+
+
+</div>
+
+</sly-card>

@@ -1,12 +1,9 @@
-from movement_laws import *
 import numpy
 from collections import namedtuple
 from imgaug.augmentables.segmaps import SegmentationMapsOnImage
 from logger import logger
-import cv2
 
 import augmentations
-
 
 from time import time
 
@@ -94,9 +91,9 @@ class MovementController:
             while not self.check_bounding_coords_availability((x, y), curr_object):
                 x, y = curr_object.controller.x, curr_object.controller.y
 
-            collision_solver *= 1.3
+            collision_solver *= 1.1
 
-            if collision_solver > 50:
+            if collision_solver > 100:
                 return -1  # collision problem
 
         while not self.check_bounding_coords_availability((x, y), curr_object):

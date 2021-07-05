@@ -2,7 +2,7 @@ from sly_globals import *
 
 from logger import logger
 
-from supervisely_lib.video_annotation.key_id_map import KeyIdMap
+# from supervisely_lib.video_annotation.key_id_map import KeyIdMap
 
 from functools import partial
 
@@ -68,12 +68,16 @@ class AnnotationKeeper:
         video_name = video_path.split('/')[-1]
 
         sly_progress.refresh_params('Uploading video',  sly.fs.get_file_size(video_path))
-        progress_cb = partial(sly_progress.set_progress, api=api, task_id=task_id, progress=sly_progress.pbar)
+
+        progress_cb = partial(sly_progress.set_progress, api=api, task_id=task_id,
+                              progress=sly_progress.pbar)
         progress_cb(0)
         file_info = api.video.upload_paths(self.dataset.id, [video_name], [video_path], item_progress=progress_cb)
         sly_progress.refresh_params('Uploading annotations', 1)
         api.video.annotation.append(file_info[0].id, video_annotation)
         sly_progress.next_step()
+
+        sly_progress.reset_params()
 
         logger.info(f'{video_name} uploaded!')
 
