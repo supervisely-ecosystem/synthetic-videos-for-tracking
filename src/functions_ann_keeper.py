@@ -32,7 +32,8 @@ class AnnotationKeeper:
     def add_figures_by_frame(self, coords_data, frame_index):
         temp_figures = []
         for index, current_coord in enumerate(coords_data):
-            temp_figures.append(sly.VideoFigure(self.video_object_list[index], current_coord, frame_index))
+            if current_coord:
+                temp_figures.append(sly.VideoFigure(self.video_object_list[index], current_coord, frame_index))
 
         self.figures.append(temp_figures)
 
