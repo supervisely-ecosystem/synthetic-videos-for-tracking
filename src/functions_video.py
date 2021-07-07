@@ -204,10 +204,12 @@ def keep_annotations_by_frame(temp_objects, frame_index, ann_keeper):
     annotations_for_frame = []
 
     for curr_object in temp_objects:
-        x, y = curr_object.controller.x, curr_object.controller.y
-        curr_object_coords = sly.Rectangle(y, x, y + curr_object.image.shape[0] - 1,
-                                           x + curr_object.image.shape[1] - 1)
-
+        if curr_object.is_tracking:
+            x, y = curr_object.controller.x, curr_object.controller.y
+            curr_object_coords = sly.Rectangle(y, x, y + curr_object.image.shape[0] - 1,
+                                               x + curr_object.image.shape[1] - 1)
+        else:
+            curr_object_coords = None
         annotations_for_frame.append(curr_object_coords)
 
     ann_keeper.add_figures_by_frame(annotations_for_frame, frame_index)

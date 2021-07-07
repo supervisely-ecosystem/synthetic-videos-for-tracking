@@ -95,7 +95,7 @@
                                     v-model="state.classIsPositive[row.Name]"
                                     on-text=""
                                     off-text=""
-                                    disabled>
+                                    :disabled="state.done2 || state.classCountsMax[row.Name] == 0">
                             </el-switch>
                         </div>
 
