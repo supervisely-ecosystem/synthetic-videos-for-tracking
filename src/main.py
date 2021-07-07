@@ -22,7 +22,7 @@ def preview(api: sly.Api, task_id, context, state, app_logger):
     rc, _ = process_video(sly_progress, state, is_preview=True)
 
     if rc == 0:
-        sly_progress.refresh_params('Uploading video', 0, True)
+        sly_progress.refresh_params('Uploading video', 0, is_size=True)
         progress_cb = partial(sly_progress.upload_monitor, api=api, task_id=task_id, progress=sly_progress.pbar)
 
         video_path = os.path.join(app.data_dir, './preview.mp4')
