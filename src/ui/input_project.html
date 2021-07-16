@@ -39,14 +39,16 @@
                     style="color: #20a0ff">{{ data.progressDownloadAnnotationsDsCurrent }}</span> /
                 {{ data.progressDownloadAnnotationsDsTotal }}</b></div>
             <el-progress
-                    :percentage="Math.round(data.progressDownloadAnnotationsDsCurrent * 100 / data.progressDownloadAnnotationsDsTotal)"></el-progress>
+                    :percentage="data.progressDownloadAnnotationsDsPercent"></el-progress>
+
         </div>
         <div v-if="data.progressDownloadAnnotationsTotal && state.step1Loading" class="mt10">
             <div>{{ data.progressDownloadAnnotationsMessage }}: <b><span
                     style="color: #20a0ff">{{ data.progressDownloadAnnotationsCurrent }}</span> /
                 {{ data.progressDownloadAnnotationsTotal }}</b></div>
             <el-progress
-                    :percentage="Math.round(data.progressDownloadAnnotationsCurrent * 100 / data.progressDownloadAnnotationsTotal)"></el-progress>
+                    :percentage="data.progressDownloadAnnotationsPercent"></el-progress>
+
         </div>
 
 

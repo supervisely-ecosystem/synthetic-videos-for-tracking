@@ -21,11 +21,7 @@ def init_input_project(data, state):
     state["step2StatsLoading"] = False
 
 
-
-
-
 def init_step_flags(data, state):
-
     if state['restartFrom']:
         start_step = state['restartFrom']
     else:

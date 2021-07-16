@@ -114,12 +114,13 @@
             </div>
         </div>
 
+
         <div v-if="data.progress4Total && state.step6Loading" class="mt15">
             <div>{{ data.progress4Message }}: <b><span
                     style="color: #20a0ff">{{ data.progress4Current }}</span> /
                 {{ data.progress4Total }}</b></div>
             <el-progress
-                    :percentage="Math.round(data.progress4Current * 100 / data.progress4Total)"></el-progress>
+                    :percentage="data.progress4Percent"></el-progress>
         </div>
 
         <div v-if="data.progressSynthTotal && state.step6Loading" class="mt10">
@@ -127,7 +128,7 @@
                     style="color: #20a0ff">{{ data.progressSynthCurrent }}</span> /
                 {{ data.progressSynthTotal }}</b></div>
             <el-progress
-                    :percentage="Math.round(data.progressSynthCurrent * 100 / data.progressSynthTotal)"></el-progress>
+                    :percentage="data.progressSynthPercent"></el-progress>
         </div>
     </div>
 </sly-card>

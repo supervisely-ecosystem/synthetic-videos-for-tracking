@@ -1,5 +1,3 @@
-
-
 <div class="fflex" style="align-items: stretch;">
 
     <sly-card class="mr15"
@@ -108,7 +106,7 @@
 
             <el-input-number class="mt5 mr15" v-model="state.durationPreview" :min="1" :max="10"
                              size="small"
-            :disabled="state.done5 || state.disabled5"></el-input-number>
+                             :disabled="state.done5 || state.disabled5"></el-input-number>
 
             <el-button
                     type="primary"
@@ -133,7 +131,8 @@
                     style="color: #20a0ff">{{ data.progressPreviewCurrent }}</span> /
                 {{ data.progressPreviewTotal }}</b></div>
             <el-progress
-                    :percentage="Math.round(data.progressPreviewCurrent * 100 / data.progressPreviewTotal)"></el-progress>
+                    :percentage="data.progressPreviewPercent"></el-progress>
+
         </div>
     </sly-card>
 

@@ -56,8 +56,7 @@ class AnnotationKeeper:
 
         self.meta = sly.ProjectMeta(obj_classes=sly.ObjClassCollection(self.get_unique_objects(self.sly_objects_list)))
 
-        if not project_id:
-            api.project.update_meta(self.project.id, self.meta.to_json())
+        api.project.update_meta(self.project.id, self.meta.to_json())
 
     def upload_annotation(self, video_path, sly_progress):
         self.get_frames_list()

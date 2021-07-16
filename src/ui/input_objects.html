@@ -188,8 +188,8 @@
                     style="color: #20a0ff">{{ data.progressDownloadObjectsCurrent }}</span> /
                 {{ data.progressDownloadObjectsTotal }}</b></div>
             <el-progress
-                    :percentage="Math.round(data.progressDownloadObjectsCurrent * 100
-                     / data.progressDownloadObjectsTotal)"></el-progress>
+                    :percentage="data.progressDownloadObjectsPercent"></el-progress>
+
         </div>
 
         <el-button type="warning" class="regular mt10" :plain="true"

@@ -12,7 +12,6 @@ import imgaug.augmenters as iaa
 from functions_background import object_larger_than_background
 
 
-
 class ExtractedObject:
     """
     Класс извлеченного объекта.

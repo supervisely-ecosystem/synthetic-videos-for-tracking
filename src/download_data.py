@@ -32,6 +32,8 @@ class SlyProgress:
             {"field": f"data.{self.pbar_element_name}Message", "payload": self.pbar.message},
             {"field": f"data.{self.pbar_element_name}Current", "payload": self.pbar.current_label},
             {"field": f"data.{self.pbar_element_name}Total", "payload": self.pbar.total_label},
+            {"field": f"data.{self.pbar_element_name}Percent", "payload":
+                math.floor(self.pbar.current * 100 / self.pbar.total)},
         ]
         self.api.task.set_fields(self.task_id, fields)
 
@@ -41,6 +43,7 @@ class SlyProgress:
             {"field": f"data.{self.pbar_element_name}Message", "payload": None},
             {"field": f"data.{self.pbar_element_name}Current", "payload": None},
             {"field": f"data.{self.pbar_element_name}Total", "payload": None},
+            {"field": f"data.{self.pbar_element_name}Percent", "payload": None},
         ]
         self.api.task.set_fields(self.task_id, fields)
 
@@ -312,7 +315,7 @@ def download_objects(api: sly.Api, task_id, context, state, app_logger):
 
 @app.callback("download_objects_annotations")
 @sly.timeit
-@app.ignore_errors_and_show_dialog_window()
+# @app.ignore_errors_and_show_dialog_window()
 def download_objects_annotations(api: sly.Api, task_id, context, state, app_logger):
     ann_info = get_project_ann_info(project_id=project_id,
                                             dataset_names=None,
