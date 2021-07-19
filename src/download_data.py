@@ -33,7 +33,7 @@ class SlyProgress:
             {"field": f"data.{self.pbar_element_name}Current", "payload": self.pbar.current_label},
             {"field": f"data.{self.pbar_element_name}Total", "payload": self.pbar.total_label},
             {"field": f"data.{self.pbar_element_name}Percent", "payload":
-                math.floor(self.pbar.current * 100 / self.pbar.total)},
+                curr_step},
         ]
         self.api.task.set_fields(self.task_id, fields)
 
