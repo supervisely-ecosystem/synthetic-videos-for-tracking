@@ -46,6 +46,7 @@ def get_crop_coords(geometry):
     :param geometry: Bitmap объекта
     :return: BB объекта
     """
+
     x = geometry.origin.row
     y = geometry.origin.col
 
@@ -70,6 +71,7 @@ def extract_object_from_image(image_as_arr, label):
     :return: вырезанный объект, маска объекта
     """
     geometry = label.geometry
+    geometry = geometry.convert(sly.Bitmap)[0]
 
     crop_coords = get_crop_coords(geometry)
     cropped_image = crop_image_as_rectangle(image_as_arr, crop_coords)
@@ -97,6 +99,8 @@ def generate_base_primitives(extracted_objects, req_counts, curr_background, bas
         curr_label_count = 0
         while curr_label_count < count:
             temp_extracted_objects = copy.deepcopy(extracted_objects)
+            random.shuffle(temp_extracted_objects)
+
             for extracted_object in temp_extracted_objects:
                 if extracted_object.class_name == label:
                     for tries in range(10):
@@ -140,6 +144,7 @@ def get_objects_list_for_project(req_objects):
     for curr_object in req_objects:
         ann = sly.Annotation.from_json(curr_object.annotation,
                                        sly.ProjectMeta.from_json(api.project.get_meta(id=project_id)))
+
 
         image_as_arr = cv2.imread(curr_object.image_path)
         for label in ann.labels:  # по всем объектам на изображении

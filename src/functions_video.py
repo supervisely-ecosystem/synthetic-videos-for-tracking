@@ -289,9 +289,9 @@ def write_frames_to_file(video_path, fps, frames, video_shape, sly_progress=None
     video.release()
 
     if video_path.split('/')[-1] == 'preview.mp4':
-        converted_path = video_path.replace("preview.mp4", "VP90preview.mp4")
+        converted_path = video_path.replace("preview.mp4", "converted_preview.mp4")
         # ffmpeg -i input.mp4 -c:v libvpx-vp9 -c:a libopus output.webm
-        subprocess.call(['ffmpeg', '-y', '-i', f'{video_path}', '-c:v', 'libvpx-vp9', '-c:a',
+        subprocess.call(['ffmpeg', '-y', '-i', f'{video_path}', '-c:v', 'libx264', '-c:a',
                          'libopus', f'{converted_path}'])
         os.remove(video_path)
         os.rename(converted_path, video_path)

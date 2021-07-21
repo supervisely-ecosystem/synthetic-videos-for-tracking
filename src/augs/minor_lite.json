@@ -5,15 +5,12 @@
             "name": "Rotate",
             "params": {
                 "rotate": [
-                    -16,
-                    16
+                    -15,
+                    15
                 ],
-                "order": 1,
-                "cval": 0,
-                "mode": "constant",
                 "fit_output": true
             },
-            "python": "iaa.geometric.Rotate(rotate=(-16, 16), order=1, cval=0, mode='constant', fit_output=True)"
+            "python": "iaa.geometric.Rotate(rotate=(-15, 15), fit_output=True)"
         },
         {
             "category": "color",

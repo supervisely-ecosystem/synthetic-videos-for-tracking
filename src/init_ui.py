@@ -76,7 +76,7 @@ def split_rows(rows):
     neg_rows = []
 
     for row in rows:
-        if row['Shape'] == 'bitmap':
+        if row['Shape'] == 'bitmap' or row['Shape'] == 'polygon':
             pos_rows.append(row)
         else:
             neg_rows.append(row)

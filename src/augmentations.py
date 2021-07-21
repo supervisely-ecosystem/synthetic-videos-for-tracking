@@ -162,13 +162,17 @@ def get_frame_image(req_objects):
 
 
 def get_image_and_ann(req_objects):
-    temp_object = get_objects_list_for_project(req_objects)[0]
+    temp_objects = get_objects_list_for_project(req_objects)  # select random object
+    random.shuffle(temp_objects)
+    temp_object = temp_objects[0]
+    temp_geometry = temp_object.sly_ann.labels[0].geometry.convert(sly.Bitmap)[0]
+
     temp_object.image = cv2.cvtColor(temp_object.image, cv2.COLOR_BGR2RGB)
     temp_object.image = cv2.bitwise_and(temp_object.image, temp_object.image,
                                         mask=temp_object.mask.astype(numpy.uint8) * 255)
 
-    div_x = temp_object.sly_ann.labels[0].geometry.origin.col
-    div_y = temp_object.sly_ann.labels[0].geometry.origin.row
+    div_x = temp_geometry.origin.col
+    div_y = temp_geometry.origin.row
 
     ann = temp_object.sly_ann
     ann = ann.relative_crop(
@@ -314,7 +318,6 @@ def transform_object(curr_object, transform, general_transform=False):
         curr_object.mask_backup = mask_aug
 
     else:
-
         image_aug, segment_map_aug = transform(image=curr_object.image_backup.copy(),
                                                            segmentation_maps=segment_map)
 

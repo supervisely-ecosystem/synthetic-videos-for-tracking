@@ -158,11 +158,11 @@ def get_list_req_objects(ann_data, state):
                                                                 annotation=ann_copy))
                         temp_count += 1
 
-                    if temp_count == count:
-                        break
-
-                if temp_count == count:
-                    break
+                #     if temp_count == count:  ## load all objects
+                #         break
+                #
+                # if temp_count == count:
+                #     break
 
     return needed_objects
 
@@ -249,7 +249,6 @@ def download_backgrounds_ann(api: sly.Api, task_id, context, state, app_logger):
     #     ]
     #
     #     api.task.set_fields(task_id, fields)
-
 
 
 
