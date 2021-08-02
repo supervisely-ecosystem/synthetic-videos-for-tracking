@@ -28,7 +28,7 @@
             v-show="!state.allDatasets"
             :project-id="state.bgProjectId"
             :datasets.sync="state.bgDatasets"
-            :options="{'multiple': true}"
+            :options="{'multiple': true, availableTypes: ['images']}"
             :disabled="state.done3">
     </sly-select-dataset>
 
