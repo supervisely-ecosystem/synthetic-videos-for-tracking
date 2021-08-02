@@ -162,7 +162,8 @@ def get_frame_image(req_objects):
 
 
 def get_image_and_ann(req_objects):
-    temp_objects = get_objects_list_for_project(req_objects)  # select random object
+    temp_objects = load_dumped('req_objects.pkl') # select random object
+
     random.shuffle(temp_objects)
     temp_object = temp_objects[0]
     temp_geometry = temp_object.sly_ann.labels[0].geometry.convert(sly.Bitmap)[0]

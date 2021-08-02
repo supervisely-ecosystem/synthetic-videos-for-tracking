@@ -26,15 +26,21 @@ App generates synthetic video data for tracking tasks. It copies labeled objects
 
 # How to Use
 
-1. Using `Polygon` or `Bitmap` tools, label several objects as foregrounds.  
+1. Label several objects as foregrounds using `Polygon` or `Bitmap` tools.  
 For example you can use `Lemons (Annotated)` project from ecosystem.
 
 2. Prepare backgrounds — it is a project or dataset with background images.  
 For example you can use dataset `01_backgrounds` from project `Seeds`.
 
-3. Add app from ecosystem to your team `(изображение превью)`
+3. Add app from ecosystem to your team
+<img src="https://imgur.com/Neggszi.png" width="300">  
 
-4. Run app from the context menu of project with labeled foregrounds: `(изображение запуска)`
+
+
+
+4. Run app from the context menu of project with labeled foregrounds:
+<img src="https://imgur.com/kJHGgu3.png" width="300" style='padding-top: 10px'>  
+
 
 5. Generate synthetic videos with different settings and save experiments results to different projects / datasets.
 
