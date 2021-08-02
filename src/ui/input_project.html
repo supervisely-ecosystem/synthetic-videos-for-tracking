@@ -10,7 +10,7 @@
 
     <sly-field title="" description="Input project" class="mt15 mb15">
         <a slot="title" target="_blank"
-           :href="`/projects/${data.projectId}/datasets`">{{ data.projectName }} ({{ data.projectImagesCount }}
+           :href="`/projects/${data.projectId}/datasets`">{{ data.projectName }} ({{ data.projectItemsCount }}
             images)</a>
         <sly-icon slot="icon" :options="{ imageUrl: `${data.projectPreviewUrl}` }"/>
     </sly-field>
