@@ -19,6 +19,11 @@ def get_cv2_background_by_path(background_path):
 
     try:
         bg_img = cv2.imread(background_path)
+
+        y_slicer = bg_img.shape[0] if bg_img.shape[0] % 2 == 0 else bg_img.shape[0] - 1
+        x_slicer = bg_img.shape[1] if bg_img.shape[1] % 2 == 0 else bg_img.shape[1] - 1
+
+        bg_img = bg_img[:y_slicer, :x_slicer]
         # return cv2.cvtColor(bg_img, cv2.COLOR_RGBA2BGRA)
         return bg_img
     except Exception as ex:
