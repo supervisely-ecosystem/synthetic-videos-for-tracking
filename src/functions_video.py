@@ -242,7 +242,7 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper=None, fr
             if rc == -1:
                 if sly_progress:
                     sly_progress.reset_params()
-                    
+
                 window_warner('Too many collisions occurred between objects during video generation.'
                               'Please allow objects to overlap each other more, or reduce the objects count.',
                               fields=[{"field": "state.previewLoading", "payload": False},

@@ -112,6 +112,11 @@ def restart(api: sly.Api, task_id, context, state, app_logger):
     api.app.set_field(task_id, "data.scrollIntoView", f"step{restart_from_step}")
 
 
+# @TODO: scrolling table with fixed size
+# @TODO: save objects proportions
+# @TODO: resize objects if too many collisions option
+
+
 def main():
     data = {}
     state = {'restartFrom': None}
