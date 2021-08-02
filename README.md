@@ -27,19 +27,22 @@ App generates synthetic video data for tracking tasks. It copies labeled objects
 # How to Use
 
 1. Label several objects as foregrounds using `Polygon` or `Bitmap` tools.  
-For example you can use `Lemons (Annotated)` project from ecosystem.
+For example you can use `Lemons (Annotated)` project from ecosystem.  
+<img src="https://imgur.com/3oshQw7.png" width="300" style='padding-top: 10px'>  
+
 
 2. Prepare backgrounds — it is a project or dataset with background images.  
 For example you can use dataset `01_backgrounds` from project `Seeds`.
-
-3. Add app from ecosystem to your team
-<img src="https://imgur.com/Neggszi.png" width="300">  
+<img src="https://imgur.com/BolnnHS.png" width="300" style='padding-top: 10px'>
 
 
+3. Add app from ecosystem to your team   
+
+ <img src="https://imgur.com/Neggszi.png" width="300">  
 
 
 4. Run app from the context menu of project with labeled foregrounds:
-<img src="https://imgur.com/kJHGgu3.png" width="300" style='padding-top: 10px'>  
+<img src="https://imgur.com/68J2Z6t.png" width="300" style='padding-top: 10px'>  
 
 
 5. Generate synthetic videos with different settings and save experiments results to different projects / datasets.
@@ -51,4 +54,4 @@ For example you can use dataset `01_backgrounds` from project `Seeds`.
 `(демо видео)`
 
 # Screenshots
-`(скриншоты)`
+<img src="https://imgur.com/8TSY3kU.png" width="auto" style='padding-top: 10px'>
