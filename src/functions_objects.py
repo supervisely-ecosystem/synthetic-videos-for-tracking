@@ -173,6 +173,9 @@ def get_objects_list_for_project(req_objects, sly_progress):
         if sly_progress:
             sly_progress.next_step()
 
+    if sly_progress:
+        sly_progress.reset_params()
+
     return extracted_objects
 
 

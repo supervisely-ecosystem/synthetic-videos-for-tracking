@@ -5,6 +5,8 @@ from functools import partial
 
 import math
 
+from functions_objects import ExtractedObject, get_objects_list_for_project
+
 
 objects_ann_info = None
 backgrounds_ann_info = None
@@ -268,9 +270,10 @@ def download_objects(api: sly.Api, task_id, context, state, app_logger):
 
         # req_backgrounds = load_dumped('req_backgrounds.pkl')
 
-        download_images(req_objects, 'objects', sly_progress)
+        download_images(req_objects, 'objects', sly_progress, need_reset_progress=False)
+        extracted_objects = get_objects_list_for_project(req_objects, sly_progress)
 
-        dump_req(req_objects, 'req_objects.pkl')
+        dump_req(extracted_objects, 'req_objects.pkl')
 
         fields = [
             {"field": "state.step2Loading", "payload": False},

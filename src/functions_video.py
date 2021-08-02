@@ -30,7 +30,7 @@ class Scene:
         self.height = height
         self.backgrounds = []
 
-        self.base_primitives = []
+        self.extracted_objects = []
 
         self.req_objects_num = None
 
@@ -45,15 +45,15 @@ class Scene:
             self.backgrounds.append(get_cv2_background_by_path(background_path))
         logger.info(f'{len(self.backgrounds)} backgrounds successfully added')
 
-    def add_objects(self, req_objects, state, sly_progress=None):
+    def add_objects(self, req_objects, state):
 
-        self.base_primitives = get_objects_list_for_project(req_objects, sly_progress)
+        self.extracted_objects = req_objects
 
         self.req_objects_num = (state['classCountsMin'], state['classCountsMax'])
 
-        logger.info(f'[{len(self.base_primitives)}] objects successfully added')
+        logger.info(f'[{len(self.extracted_objects)}] objects successfully added')
         logger.info(f'available objects:\n'
-                    f'{get_available_objects(self.base_primitives)}\n')
+                    f'{get_available_objects(self.extracted_objects)}\n')
 
     def generate_video(self, video_path, fps, duration, movement_laws, state, upload_ann=False, sly_progress=None):
 
@@ -71,7 +71,7 @@ class Scene:
 
             req_objects_num = generate_object_counts(self.req_objects_num[0], self.req_objects_num[1])
 
-            temp_objects = copy.deepcopy(self.base_primitives)
+            temp_objects = copy.deepcopy(self.extracted_objects)
             temp_objects = generate_base_primitives(temp_objects, req_objects_num,
                                                     curr_background, self.object_general_transforms,
                                                     state['canResize'], sly_progress)
@@ -319,7 +319,7 @@ def process_video(sly_progress, state, is_preview=True):
     background_paths = [curr_background.image_path for curr_background in req_backgrounds]
 
     custom_scene.add_backgrounds(background_paths)
-    custom_scene.add_objects(req_objects, state, sly_progress)
+    custom_scene.add_objects(req_objects, state)
 
     fps = state['fps']
 
