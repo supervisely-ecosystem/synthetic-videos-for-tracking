@@ -54,4 +54,4 @@ For example you can use dataset `01_backgrounds` from project `Seeds`.
 `(демо видео)`
 
 # Screenshots
-<img src="https://imgur.com/8TSY3kU.png" width="auto" style='padding-top: 10px'>
+<img src="https://imgur.com/gBwRSjD.png" width="auto" style='padding-top: 10px'>
