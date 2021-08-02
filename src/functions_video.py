@@ -31,7 +31,6 @@ class Scene:
         self.backgrounds = []
 
         self.base_primitives = []
-        self.base_primitives_backup = []
 
         self.req_objects_num = None
 
@@ -46,10 +45,10 @@ class Scene:
             self.backgrounds.append(get_cv2_background_by_path(background_path))
         logger.info(f'{len(self.backgrounds)} backgrounds successfully added')
 
-    def add_objects(self, req_objects, state):
+    def add_objects(self, req_objects, state, sly_progress=None):
 
-        self.base_primitives = get_objects_list_for_project(req_objects)
-        self.base_primitives_backup = get_objects_list_for_project(req_objects)
+        self.base_primitives = get_objects_list_for_project(req_objects, sly_progress)
+
         self.req_objects_num = (state['classCountsMin'], state['classCountsMax'])
 
         logger.info(f'[{len(self.base_primitives)}] objects successfully added')
@@ -75,7 +74,7 @@ class Scene:
             temp_objects = copy.deepcopy(self.base_primitives)
             temp_objects = generate_base_primitives(temp_objects, req_objects_num,
                                                     curr_background, self.object_general_transforms,
-                                                    state['canResize'])
+                                                    state['canResize'], sly_progress)
             if len(temp_objects) > 0:
                 initialize_controllers(temp_objects, movement_laws, speed_interval,
                                        self_overlay, curr_background.shape,
@@ -320,7 +319,7 @@ def process_video(sly_progress, state, is_preview=True):
     background_paths = [curr_background.image_path for curr_background in req_backgrounds]
 
     custom_scene.add_backgrounds(background_paths)
-    custom_scene.add_objects(req_objects, state)
+    custom_scene.add_objects(req_objects, state, sly_progress)
 
     fps = state['fps']
 

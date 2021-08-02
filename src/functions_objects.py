@@ -89,10 +89,14 @@ def reduce_object_size(curr_object):
     augmentations.transform_object(curr_object, transformation, True)
 
 
-def generate_base_primitives(extracted_objects, req_counts, curr_background, base_transform=None, can_resize=False):
+def generate_base_primitives(extracted_objects, req_counts, curr_background, base_transform=None, can_resize=False,
+                             sly_progress=None):
     temp_objects = []
 
     req_counts = {key: value for key, value in req_counts.items() if value > 0}
+
+    if sly_progress:
+        sly_progress.refresh_params('Generating base primitives', int(len(req_counts.keys())))
 
     for label, count in req_counts.items():
 
@@ -129,11 +133,13 @@ def generate_base_primitives(extracted_objects, req_counts, curr_background, bas
 
                 if curr_label_count == count:
                     break
+        if sly_progress:
+            sly_progress.next_step()
 
     return temp_objects
 
 
-def get_objects_list_for_project(req_objects):
+def get_objects_list_for_project(req_objects, sly_progress):
     """
     Extract all needed objects from images
     :param req_objects: list of required objects with obj_bitmaps and images_paths
@@ -141,9 +147,12 @@ def get_objects_list_for_project(req_objects):
     """
     extracted_objects = []
 
+    if sly_progress:
+        sly_progress.refresh_params(f"Extracting objects from images", len(req_objects))
+
     for curr_object in req_objects:
         ann = sly.Annotation.from_json(curr_object.annotation,
-                                       sly.ProjectMeta.from_json(api.project.get_meta(id=project_id)))
+                                       project_meta)
 
 
         image_as_arr = cv2.imread(curr_object.image_path)
@@ -160,6 +169,9 @@ def get_objects_list_for_project(req_objects):
                                 ds_id=curr_object.ds_id,
                                 sly_ann=ann)
             )
+
+        if sly_progress:
+            sly_progress.next_step()
 
     return extracted_objects
 
