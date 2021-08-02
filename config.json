@@ -5,7 +5,7 @@
     "Synthetic Data",
     "Videos"
   ],
-  "description": "synth videos on annotated data",
+  "description": "Synthesize videos on annotated data",
   "docker_image": "supervisely/base-py-sdk:6.1.84",
   "main_script": "src/main.py",
   "gui_template": "src/gui.html",

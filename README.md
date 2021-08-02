@@ -8,7 +8,7 @@
 <p align="center">
   <a href="#Overview">Overview</a> •
   <a href="#How-To-Use">How To Use</a> •
-  <a href="#How-To-Use">Demo</a> •
+  <a href="#Watch-Demo-Video">Demo</a> •
     <a href="#Screenshots">Screenshots</a>
 </p>
 
@@ -41,7 +41,7 @@ For example you can use dataset `01_backgrounds` from project `Seeds`.
 6. Close app manually
 
 
-# Watch demo video
+# Watch Demo Video
 `(демо видео)`
 
 # Screenshots
