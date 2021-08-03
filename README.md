@@ -37,7 +37,7 @@ For example you can use dataset `01_backgrounds` from project [Seeds](https://ec
 
 
 3. Add app from ecosystem to your team  
-<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/supervisely-ecosystem/synthetic-videos-for-tracking" src="https://imgur.com/Neggszi.png" width="350px" style='padding-bottom: 10px'/>
+<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/synthetic-videos-for-tracking" src="https://imgur.com/Neggszi.png" width="350px" style='padding-bottom: 10px'/>
 
 
 
