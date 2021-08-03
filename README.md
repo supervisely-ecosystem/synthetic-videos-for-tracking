@@ -31,6 +31,9 @@ Application key points:
 - If there are too many collisions between objects on the frame, we will warn you
 
 
+<img src="https://github.com/supervisely-ecosystem/synthetic-videos-for-tracking/blob/master/demo/simple_video/demo1.gif?raw=true" style="max-width:50%;"/>
+
+
 # How to Use
 
 1. Label several objects as foregrounds using `Polygon` or `Bitmap` tools.  
