@@ -27,12 +27,13 @@ App generates synthetic video data for tracking tasks. It copies labeled objects
 # How to Use
 
 1. Label several objects as foregrounds using `Polygon` or `Bitmap` tools.  
-For example you can use `Lemons (Annotated)` project from ecosystem.  
-<img src="https://imgur.com/3oshQw7.png" width="300" style='padding-top: 10px'>
+For example you can use [Lemons (Annotated)](https://ecosystem.supervise.ly/projects/lemons-annotated) project from ecosystem.  
+<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/lemons-annotated" src="https://imgur.com/3oshQw7.png" width="350px" style='padding-top: 10px'/>
+
 
 2. Prepare backgrounds — it is a project or dataset with background images.  
-For example you can use dataset `01_backgrounds` from project `Seeds`.  
-<img src="https://imgur.com/BolnnHS.png" width="300" style='padding-top: 10px'>
+For example you can use dataset `01_backgrounds` from project [Seeds](https://ecosystem.supervise.ly/projects/seeds).  
+<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/seeds" src="https://imgur.com/BolnnHS.png" width="350px" style='padding-top: 10px'/>
 
 
 3. Add app from ecosystem to your team  
@@ -55,4 +56,4 @@ For example you can use dataset `01_backgrounds` from project `Seeds`.
 
 
 # Screenshots
-<img src="https://imgur.com/gBwRSjD.png" width="auto" style='padding-top: 10px'>
+<img src="https://imgur.com/ezKOLE3.png" width="auto" style='padding-top: 10px'>
