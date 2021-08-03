@@ -51,7 +51,10 @@ For example you can use dataset `01_backgrounds` from project `Seeds`.
 
 
 # Watch Demo Video
-`(демо видео)`
+<a data-key="sly-embeded-video-link" href="https://youtu.be/yvWegId-edU" data-video-code="yvWegId-edU">
+    <img src="https://imgur.com/VRQdPXx.png" alt="SLY_EMBEDED_VIDEO_LINK"  style="max-width:100%;">
+</a>
+
 
 # Screenshots
 <img src="https://imgur.com/gBwRSjD.png" width="auto" style='padding-top: 10px'>
