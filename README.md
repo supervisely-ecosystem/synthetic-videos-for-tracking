@@ -24,6 +24,13 @@
 
 App generates synthetic video data for tracking tasks. It copies labeled objects (foregrounds), applies augmentations and pastes them to background images according to the given parameters.
 
+Application key points:
+- Only `Bitmap` and `Polygon` shapes now available
+- Video is created with a fixed background
+- If the size of the object exceeds the size of the background, its size will be reduced
+- If there are too many collisions between objects on the frame, we will warn you
+
+
 # How to Use
 
 1. Label several objects as foregrounds using `Polygon` or `Bitmap` tools.  
@@ -42,7 +49,7 @@ For example you can use dataset `01_backgrounds` from project [Seeds](https://ec
 
 
 4. Run app from the context menu of project with labeled foregrounds:  
-<img src="https://imgur.com/68J2Z6t.png" width="300" style='padding-top: 10px'>  
+<img src="https://imgur.com/68J2Z6t.png" width="100%" style='padding-top: 10px'>  
 
 
 5. Generate synthetic videos with different settings and save experiments results to different projects / datasets.
