@@ -2,8 +2,11 @@
   "name": "Synthetic videos for tracking",
   "type": "app",
   "categories": [
-    "Synthetic Data",
-    "Videos"
+    "neural network",
+    "videos",
+    "detection & tracking",
+    "segmentation & tracking",
+    "nn tools"
   ],
   "description": "Synthesize videos on annotated data",
   "docker_image": "supervisely/base-py-sdk:6.1.84",
