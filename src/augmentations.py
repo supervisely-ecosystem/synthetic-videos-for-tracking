@@ -8,7 +8,7 @@ from functions_objects import get_objects_list_for_project
 from movement_controller import find_mask_tight_bbox
 from download_data import download_images
 
-from supervisely.app.widgets import CompareGallery
+from supervisely.app.v1.widgets.compare_gallery import CompareGallery
 
 from imgaug.augmentables.segmaps import SegmentationMapsOnImage
 

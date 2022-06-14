@@ -1,11 +1,12 @@
 import os
 from pathlib import Path
 import sys
-import supervisely_lib as sly
+import supervisely as sly
+from supervisely.app.v1.app_service import AppService
 import pickle
 
 
-app = sly.AppService()
+app = AppService()
 api = app.public_api
 task_id = app.task_id
 
