@@ -8,7 +8,7 @@ from functions_objects import get_objects_list_for_project
 from movement_controller import find_mask_tight_bbox
 from download_data import download_images
 
-from supervisely_lib.app.widgets import CompareGallery
+from supervisely.app.v1.widgets.compare_gallery import CompareGallery
 
 from imgaug.augmentables.segmaps import SegmentationMapsOnImage
 
@@ -125,7 +125,7 @@ def preview_augs(state, augmentation_type):
         api.file.remove(team_id, remote_preview_path.format('before'))
     file_info = api.file.upload(team_id, before_image_path, remote_preview_path.format('before'))
     gallery.set_left(f"before shape: [{image.shape[1]}x{image.shape[0]}]",
-                     file_info.full_storage_url, ann)
+                     file_info.storage_path, ann)
 
     _, res_img, res_ann = sly.imgaug_utils.apply(augs_ppl, project_meta, image, ann)
 
@@ -151,7 +151,7 @@ def preview_augs(state, augmentation_type):
     if api.file.exists(team_id, remote_preview_path.format('after')):
         api.file.remove(team_id, remote_preview_path.format('after'))
     file_info = api.file.upload(team_id, local_image_path, remote_preview_path.format('after'))
-    gallery.set_right(f"after shape: [{res_img.shape[1]}x{res_img.shape[0]}]", file_info.full_storage_url, res_ann)
+    gallery.set_right(f"after shape: [{res_img.shape[1]}x{res_img.shape[0]}]", file_info.storage_path, res_ann)
     gallery.update(options=False)
 
 
