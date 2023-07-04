@@ -1,7 +1,7 @@
 <div align="center" markdown>
 
 
-<img src="https://imgur.com/1wvvNyY.png"/>  
+<img src="media/poster.png"/>  
 
 # Synthetic videos for tracking
 
@@ -38,21 +38,21 @@ Application key points:
 
 1. Label several objects as foregrounds using `Polygon` or `Bitmap` tools.  
 For example you can use [Lemons (Annotated)](https://ecosystem.supervise.ly/projects/lemons-annotated) project from ecosystem.  
-<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/lemons-annotated" src="https://imgur.com/SjUX1IZ.png" width="350px" style='padding-bottom: 10px'/>
+<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/lemons-annotated" src="media/htu1.png" width="350px" style='padding-bottom: 10px'/>
 
 
 2. Prepare backgrounds — it is a project or dataset with background images.  
 For example you can use dataset `01_backgrounds` from project [Seeds](https://ecosystem.supervise.ly/projects/seeds).  
-<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/seeds" src="https://imgur.com/dJPhe0r.png" width="350px" style='padding-bottom: 10px'/>
+<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/seeds" src="media/htu2.png" width="350px" style='padding-bottom: 10px'/>
 
 
 3. Add app from ecosystem to your team  
-<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/synthetic-videos-for-tracking" src="https://imgur.com/WIjIxA1.png" width="350px" style='padding-bottom: 10px'/>
+<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/synthetic-videos-for-tracking" src="media/htu3.png" width="350px" style='padding-bottom: 10px'/>
 
 
 
 4. Run app from the context menu of project with labeled foregrounds:  
-<img src="https://imgur.com/68J2Z6t.png" width="80%" style='padding-top: 10px'>  
+<img src="media/htu4.png" width="80%" style='padding-top: 10px'>  
 
 
 5. Generate synthetic videos with different settings and save experiments results to different projects / datasets.
@@ -62,9 +62,9 @@ For example you can use dataset `01_backgrounds` from project [Seeds](https://ec
 
 # Watch Demo Video
 <a data-key="sly-embeded-video-link" href="https://youtu.be/yvWegId-edU" data-video-code="yvWegId-edU">
-    <img src="https://imgur.com/VRQdPXx.png" alt="SLY_EMBEDED_VIDEO_LINK"  style="max-width:100%;">
+    <img src="media/d1.png" alt="SLY_EMBEDED_VIDEO_LINK"  style="max-width:100%;">
 </a>
 
 
 # Screenshots
-<img src="https://imgur.com/ezKOLE3.png" width="auto" style='padding-top: 10px'>
+<img src="media/s1.png" width="auto" style='padding-top: 10px'>
