@@ -1,30 +1,30 @@
 {
-  "name": "Synthetic videos for tracking",
-  "type": "app",
-  "categories": [
-    "neural network",
-    "videos",
-    "detection & tracking",
-    "segmentation & tracking",
-    "nn tools",
-    "synthetic",
-    "data operations"
-  ],
-  "description": "Synthesize videos on annotated data",
-  "docker_image": "supervisely/base-py-sdk:6.35.0",
-  "instance_version": "6.4.57",
-  "main_script": "src/main.py",
-  "gui_template": "src/gui.html",
-  "task_location": "workspace_tasks",
-  "isolate": true,
-  "icon": "https://i.imgur.com/vVzpFwu.png",
-  "icon_background": "#FFFFFF",
-  "context_menu": {
-    "target": [
-      "images_project"
+    "name": "Synthetic videos for tracking",
+    "type": "app",
+    "categories": [
+        "neural network",
+        "videos",
+        "detection & tracking",
+        "segmentation & tracking",
+        "nn tools",
+        "synthetic",
+        "data operations"
     ],
-    "context_category": "Synthetic data"
-  },
-  "poster": "https://imgur.com/1wvvNyY.png",
-  "community_agent": false
+    "description": "Synthesize videos on annotated data",
+    "docker_image": "supervisely/synthetic:0.0.1",
+    "instance_version": "6.4.57",
+    "main_script": "src/main.py",
+    "gui_template": "src/gui.html",
+    "task_location": "workspace_tasks",
+    "isolate": true,
+    "icon": "https://i.imgur.com/vVzpFwu.png",
+    "icon_background": "#FFFFFF",
+    "context_menu": {
+        "target": [
+            "images_project"
+        ],
+        "context_category": "Synthetic data"
+    },
+    "poster": "https://imgur.com/1wvvNyY.png",
+    "community_agent": false
 }
