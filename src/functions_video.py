@@ -232,7 +232,7 @@ def generate_frames(duration, fps, background, temp_objects, ann_keeper=None, fr
     if sly_progress:
         sly_progress.refresh_params('Objects to background', int(fps * duration))
 
-    for frame_index in tqdm(range(fps * duration), desc='Objects to background: '):
+    for frame_index in tqdm(range(fps * duration), total_cnt=(fps * duration), desc='Objects to background: '):
     # for frame_index in range(fps * duration):
         frame_background = background.copy()
         added_objects = []
