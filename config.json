@@ -11,7 +11,7 @@
         "data operations"
     ],
     "description": "Synthesize videos on annotated data",
-    "docker_image": "supervisely/synthetic:0.0.1",
+    "docker_image": "supervisely/synthetic:0.0.5",
     "instance_version": "6.4.57",
     "main_script": "src/main.py",
     "gui_template": "src/gui.html",
