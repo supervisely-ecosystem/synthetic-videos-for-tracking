@@ -12,11 +12,11 @@
     <a href="#Screenshots">Screenshots</a>
 </p>
 
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervise.ly/apps/supervisely-ecosystem/synthetic-videos-for-tracking)
-[![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervise.ly/slack)
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/synthetic-videos-for-tracking)
+[![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervisely.com/slack)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/synthetic-videos-for-tracking)
-[![views](https://app.supervise.ly/img/badges/views/supervisely-ecosystem/synthetic-videos-for-tracking.png)](https://supervise.ly)
-[![runs](https://app.supervise.ly/img/badges/runs/supervisely-ecosystem/synthetic-videos-for-tracking.png)](https://supervise.ly)
+[![views](https://app.supervisely.com/img/badges/views/supervisely-ecosystem/synthetic-videos-for-tracking.png)](https://supervisely.com)
+[![runs](https://app.supervisely.com/img/badges/runs/supervisely-ecosystem/synthetic-videos-for-tracking.png)](https://supervisely.com)
 
 </div>
 
@@ -37,12 +37,12 @@ Application key points:
 # How to Use
 
 1. Label several objects as foregrounds using `Polygon` or `Bitmap` tools.  
-For example you can use [Lemons (Annotated)](https://ecosystem.supervise.ly/projects/lemons-annotated) project from ecosystem.  
+For example you can use [Lemons (Annotated)](https://ecosystem.supervisely.com/projects/lemons-annotated) project from ecosystem.  
 <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/lemons-annotated" src="https://imgur.com/SjUX1IZ.png" width="350px" style='padding-bottom: 10px'/>
 
 
 2. Prepare backgrounds — it is a project or dataset with background images.  
-For example you can use dataset `01_backgrounds` from project [Seeds](https://ecosystem.supervise.ly/projects/seeds).  
+For example you can use dataset `01_backgrounds` from project [Seeds](https://ecosystem.supervisely.com/projects/seeds).  
 <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/seeds" src="https://imgur.com/dJPhe0r.png" width="350px" style='padding-bottom: 10px'/>
 
 
