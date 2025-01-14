@@ -102,7 +102,7 @@ def get_project_ann_info(project_id, dataset_names=None, all_ds=False):
                               progress=sly_progress_ann.pbar)
         progress_cb(0)
 
-        ann_infos[dataset_id] = api.annotation.get_list(dataset_id, progress_cb=progress_cb)
+        ann_infos[dataset_id] = api.annotation.download_batch(dataset_id, progress_cb=progress_cb)
 
         sly_progress_ds.next_step()
 
