@@ -101,8 +101,9 @@ def get_project_ann_info(project_id, dataset_names=None, all_ds=False):
         progress_cb = partial(sly_progress_ann.update_progress, api=api, task_id=task_id,
                               progress=sly_progress_ann.pbar)
         progress_cb(0)
-
-        ann_infos[dataset_id] = api.annotation.download_batch(dataset_id, progress_cb=progress_cb)
+        
+        image_ids = [img_info.id for img_info in g.api.image.get_list(dataset_id)]
+        ann_infos[dataset_id] = api.annotation.download_batch(dataset_id, image_ids, progress_cb=progress_cb)
 
         sly_progress_ds.next_step()
 
