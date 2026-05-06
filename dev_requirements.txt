@@ -1,3 +1,3 @@
-supervisely==6.73.22
-supervisely[apps]==6.35.0
+supervisely==6.73.564
+supervisely[apps]==6.73.564
 tqdm==4.61.0
